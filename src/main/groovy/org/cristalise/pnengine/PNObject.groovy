@@ -31,5 +31,5 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class PNObject {
     String name = ""
-    int id = -1
+//    int id = -1
 }

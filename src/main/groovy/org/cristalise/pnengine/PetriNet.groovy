@@ -36,14 +36,14 @@ import org.cristalise.pnengine.Arc.Direction
 @CompileStatic
 class PetriNet extends PNObject {
 
-    List<Place>        places      = new ArrayList<Place>();
-    List<Transition>   transitions = new ArrayList<Transition>();
-    List<Arc>          arcs        = new ArrayList<Arc>();
-    List<InhibitorArc> inhibitors  = new ArrayList<InhibitorArc>();
-    
+    Map<String, Place>        places      = [:]
+    Map<String, Transition>   transitions = [:]
+    Map<String, Arc>          arcs        = [:]
+    Map<String, InhibitorArc> inhibitors  = [:]
+
     PNObject cache = null
-    
-    def print() { println new JsonBuilder(this).toPrettyString() }
+
+    public String printJson() { println new JsonBuilder(this).toPrettyString() }
 
     public static PetriNet petrinet(String name, Closure cl) {
         def pn = new PetriNet(name: name)
@@ -54,9 +54,9 @@ class PetriNet extends PNObject {
         return pn
     }
 
-    public List<Transition> getTransitionsAbleToFire() {
+    public List<Transition> listOfTransitionsAbleToFire() {
         ArrayList<Transition> list = new ArrayList<Transition>();
-        for (Transition t : transitions) {
+        for (Transition t : transitions.values()) {
             if (t.canFire()) {
                 list.add(t);
             }
@@ -66,19 +66,19 @@ class PetriNet extends PNObject {
     
     public Transition transition(String name) {
         Transition t = new Transition(name: name);
-        transitions.add(t);
+        transitions[name] = t;
         return t;
     }
     
     public Place place(String name) {
         Place p = new Place(name: name);
-        places.add(p);
+        places[name] = p;
         return p;
     }
 
     public Place place(String name, int initial) {
         Place p = new Place(name: name, tokens: initial);
-        places.add(p);
+        places[name] = p;
         return p;
     }
     
@@ -86,7 +86,7 @@ class PetriNet extends PNObject {
         log.debug("Arc $name - direction ${Direction.Place2Transition}")
         Arc arc = new Arc(name: name, place: p, transition: t, direction: Direction.Place2Transition);
         t.addIncoming(arc);
-        arcs.add(arc);
+        arcs[name] = arc;
         return arc;
     }
 
@@ -94,27 +94,47 @@ class PetriNet extends PNObject {
         log.debug("Arc $name - direction ${Direction.Transition2Place}")
         Arc arc = new Arc(name: name, place: p, transition: t, direction: Direction.Transition2Place);
         t.addOutgoing(arc);
-        arcs.add(arc);
+        arcs[name] = arc;
         return arc;
     }
     
     public InhibitorArc inhibitor(String name, Place p, Transition t) {
         log.debug("Inhibitor Arc $name - direction ${Direction.Transition2Place}")
         InhibitorArc i = new InhibitorArc(name: name, place: p, transition: t, direction: Direction.Place2Transition);
-        inhibitors.add(i);
+        arcs[name] = i;
         return i;
     }
     
+
+    /**
+     * This DSL method should be used before to() 
+     * 
+     * @param p
+     * @return
+     */
     public PetriNet connect(Place p) {
         cache = p
         return this
     }
 
-    public PetriNet connect(Transition p) {
-        cache = p
+
+    /**
+     * This DSL method should be used before to() 
+     * 
+     * @param t
+     * @return
+     */
+    public PetriNet connect(Transition t) {
+        cache = t
         return this
     }
 
+    /**
+     * This DSL method should be used after connect() 
+     * 
+     * @param p
+     * @return
+     */
     public Arc to(Transition t) {
         if(cache != null && cache instanceof Place) {
             String arcName = cache.name + t.name 
@@ -123,12 +143,18 @@ class PetriNet extends PNObject {
             return a
         }
         else {
-            log.error("Call connect(Place) before caling to(Transition)")
             cache = null
-            throw new RuntimeException()
+            throw new RuntimeException("Call connect(Place) before caling to(Transition)")
         }
     }
 
+    
+    /**
+     * This DSL method should be used after connect() 
+     * 
+     * @param p
+     * @return
+     */
     public Arc to(Place p) {
         if(cache != null && cache instanceof Transition) {
             String arcName = cache.name + p.name 
@@ -137,9 +163,8 @@ class PetriNet extends PNObject {
             return a
         }
         else {
-            log.error("Call connect(Transition) befor calling to(Place)")
             cache = null
-            throw new RuntimeException()
+            throw new RuntimeException("Call connect(Transition) before calling to(Place)")
         }
     }
 }

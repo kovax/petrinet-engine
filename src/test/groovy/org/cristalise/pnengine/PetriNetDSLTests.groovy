@@ -20,8 +20,6 @@
  */
 package org.cristalise.pnengine;
 
-import org.junit.After
-import org.junit.Before
 import org.junit.Test
 
 import static org.junit.Assert.*
@@ -31,33 +29,57 @@ import static org.junit.Assert.*
  *
  */
 class PetriNetDSLTests {
-    PetriNet pn = null
-    
-    @Before
-    public void setUp() throws Exception {
-    }
-
-    /**
-     * @throws java.lang.Exception
-     */
-    @After
-    public void tearDown() throws Exception {
-    }
 
     @Test
-    public void test() {
-        def a1;
-        def pn = PetriNet.petrinet("simple") {
-            def p1 = place "p1", 1
+    public void placeToTransition() {
+        Arc a1;
+        def pn = PetriNet.petrinet("placeToTransition") {
+            def p1 = place "p1" withTokens 1
             def t1 = transition "t1"
 
             a1 = connect p1 to t1
         }
         
-        pn.print()
+        pn.printJson()
 
         assert a1.name == "p1t1"
 
-        assert pn.transitions[0].canFire()
+        assert pn.places.p1.tokens == 1
+        assert pn.transitions.t1.canFire()
+
+        pn.transitions.t1.fire()
+
+        assert pn.places.p1.tokens == 0
+        assert ! pn.transitions.t1.canFire()
+    }
+    
+    @Test
+    public void orSplit() {
+        PetriNet.petrinet("orSplit") {
+            def p1 = place "p1" withTokens 1
+            def p2 = place "p2"
+            def t1 = transition "t1"
+            def t2 = transition "t2"
+
+            connect p1 to t1
+            connect p1 to t2
+            connect t1 to p2
+            connect t2 to p2
+            
+            transitions.t1.fire()
+
+            assert ! t1.canFire()
+            assert ! t2.canFire()
+            
+            assert p1.tokens == 0
+            assert p2.tokens == 1
+        }
+    }
+
+    @Test
+    public void andSplit() {
+        PetriNet.petrinet("andSplit") {
+            assert false
+        }
     }
 }

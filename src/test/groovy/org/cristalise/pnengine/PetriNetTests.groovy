@@ -46,7 +46,7 @@ class PetriNetTests {
         def a4 = pn.arc(      "a4", t2, p3);
         def i5 = pn.inhibitor("i5", p3, t1);
 
-        pn.print()
+        pn.printJson()
 
         a2.setWeight(2);
 

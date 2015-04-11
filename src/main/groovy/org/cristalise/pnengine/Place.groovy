@@ -34,8 +34,8 @@ class Place  extends PNObject {
 
     public static final int UNLIMITED = -1;
     
-    private int tokens = 0;
-    private int maxTokens = UNLIMITED;
+    int tokens = 0;
+    int maxTokens = UNLIMITED;
 
     public boolean hasEnoughTokens(int threshold) {
         return (tokens >= threshold);
@@ -52,11 +52,18 @@ class Place  extends PNObject {
         return maxTokens == UNLIMITED;
     }
 
-    public void addTokens(int weight) {
+    public Place withTokens(int initial) {
+        tokens = initial
+        return this
+    }
+        
+    public Place addTokens(int weight) {
         this.tokens += weight;
+        return this
     }
 
-    public void removeTokens(int weight) {
+    public Place removeTokens(int weight) {
         this.tokens -= weight;
+        return this
     }
 }

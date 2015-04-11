@@ -22,14 +22,18 @@ package org.cristalise.pnengine
 
 import groovy.transform.Canonical
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 /**
- * @author kovax
- *
+ * Imposes the precondition that the transition may only fire when the place is empty; 
+ * this allows arbitrary computations on numbers of tokens to be expressed, which makes 
+ * the formalism Turing complete and implies existence of a universal net.
  */
 @Canonical
 @CompileStatic
+@Slf4j
 class InhibitorArc extends Arc {
+
     @Override
     public boolean canFire() {
         return (place.tokens < this.weight);
@@ -37,7 +41,7 @@ class InhibitorArc extends Arc {
 
     @Override
     public void fire() {
-        // do nothing
+        log.trace("InhibitorArc.fire() does NOTHING")
     }
 
 }

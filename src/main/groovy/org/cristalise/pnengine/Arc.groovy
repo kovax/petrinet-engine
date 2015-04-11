@@ -31,10 +31,10 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class Arc extends PNObject {
 
-    Place place;
+    Place      place;
     Transition transition;
-    Direction direction;
-    int weight = 1;
+    Direction  direction;
+    int        weight = 1;
 
     enum Direction {
         Place2Transition {
@@ -70,6 +70,6 @@ class Arc extends PNObject {
     }
 
     public void fire() {
-        this.direction.fire(place, this.weight);
+        direction.fire(place, weight);
     }
 }
