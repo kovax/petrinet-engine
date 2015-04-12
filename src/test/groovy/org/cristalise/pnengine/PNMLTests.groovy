@@ -18,47 +18,50 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.pnengine
 
-import groovy.transform.Canonical
+package org.cristalise.pnengine;
+
+import static org.junit.Assert.*
 import groovy.transform.CompileStatic
+
+import org.junit.Before
+import org.junit.Test
 
 /**
  * @author kovax
  *
  */
-@Canonical
 @CompileStatic
-class Transition  extends PNObject {
-    
-    private List<Arc> incoming = new ArrayList<Arc>();
-    private List<Arc> outgoing = new ArrayList<Arc>();
-    
-    public boolean canFire() {
-        boolean canFire = true;
+class PNMLTests {
 
-        canFire = ! this.isNotConnected();
-
-        for (Arc arc : incoming) { canFire = canFire & arc.canFire(); }
-        for (Arc arc : outgoing) { canFire = canFire & arc.canFire(); }
-
-        return canFire;
+    /**
+     * @throws java.lang.Exception
+     */
+    @Before
+    public void setUp() throws Exception {
     }
     
-    public void fire() {
-        for (Arc arc : incoming) { arc.fire(); }
-        for (Arc arc : outgoing) { arc.fire(); }
-    }
     
-    public void addIncoming(Arc arc) {
-        this.incoming.add(arc);
-    }
-    
-    public void addOutgoing(Arc arc) {
-        this.outgoing.add(arc);
+    public void generalPNAsserts(PetriNet pn) {
+        assert pn
+        assert pn.transitions
+        assert pn.places
+        assert pn.arcs
+        
+        assert ! pn.inhibitors
     }
 
-    public boolean isNotConnected() {
-        return incoming.isEmpty() && outgoing.isEmpty();
+
+    @Test
+    public void importANDSplitPNML() {
+        def pn = PNMLUtility.pnmlImport("src/test/data/ANDSlit.pnml")
+        generalPNAsserts(pn)
+    }
+
+
+    @Test
+    public void importXORSplitPNML() {
+        def pn = PNMLUtility.pnmlImport("src/test/data/XORSlit.pnml")
+        generalPNAsserts(pn)
     }
 }

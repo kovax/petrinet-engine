@@ -20,45 +20,38 @@
  */
 package org.cristalise.pnengine
 
-import groovy.transform.Canonical
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
+
 
 /**
  * @author kovax
  *
  */
-@Canonical
+@Slf4j
 @CompileStatic
-class Transition  extends PNObject {
+class PNMLUtility {
     
-    private List<Arc> incoming = new ArrayList<Arc>();
-    private List<Arc> outgoing = new ArrayList<Arc>();
     
-    public boolean canFire() {
-        boolean canFire = true;
-
-        canFire = ! this.isNotConnected();
-
-        for (Arc arc : incoming) { canFire = canFire & arc.canFire(); }
-        for (Arc arc : outgoing) { canFire = canFire & arc.canFire(); }
-
-        return canFire;
-    }
-    
-    public void fire() {
-        for (Arc arc : incoming) { arc.fire(); }
-        for (Arc arc : outgoing) { arc.fire(); }
-    }
-    
-    public void addIncoming(Arc arc) {
-        this.incoming.add(arc);
-    }
-    
-    public void addOutgoing(Arc arc) {
-        this.outgoing.add(arc);
+    /**
+     * Imports files which were created PNML (http://pnml.lip6.fr/index.html) compliant editors
+     * 
+     * @param the name of the PNML (xml) file
+     * @return the generated PetriNet object
+     */
+    public static PetriNet pnmlImport(String file) {
+        return null
     }
 
-    public boolean isNotConnected() {
-        return incoming.isEmpty() && outgoing.isEmpty();
+    
+    /**
+     * Export the PetriNet to a PNML (http://pnml.lip6.fr/index.html) file
+     * 
+     * @param pn the PetriNet to be exported
+     * @return the generated PNML string (xml)
+     */
+    public static String pnmlIExport(PetriNet pn) {
+        return ""
     }
+
 }

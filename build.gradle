@@ -10,8 +10,8 @@ description = "CRISTAL-iSE: PetriNet Engine"
 
 buildDir = 'target'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
 
 ext {
     groovyAllVersion = '2.3.7'
