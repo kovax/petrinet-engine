@@ -22,6 +22,7 @@ package org.cristalise.pnengine
 
 import groovy.transform.Canonical
 import groovy.transform.CompileStatic
+import groovy.transform.ToString
 
 
 /**
@@ -29,6 +30,7 @@ import groovy.transform.CompileStatic
  *
  */
 @Canonical
+@ToString(includeNames = true, includePackage = false, includeSuper = true)
 @CompileStatic
 class Place  extends PNObject {
 
@@ -57,13 +59,11 @@ class Place  extends PNObject {
         return this
     }
         
-    public Place addTokens(int weight) {
+    public void addTokens(int weight) {
         this.tokens += weight;
-        return this
     }
 
-    public Place removeTokens(int weight) {
+    public void removeTokens(int weight) {
         this.tokens -= weight;
-        return this
     }
 }

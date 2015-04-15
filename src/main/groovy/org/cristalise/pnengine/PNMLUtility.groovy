@@ -20,7 +20,6 @@
  */
 package org.cristalise.pnengine
 
-import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
 
@@ -29,9 +28,10 @@ import groovy.util.logging.Slf4j
  *
  */
 @Slf4j
-@CompileStatic
 class PNMLUtility {
-    
+
+    Map<Integer, Place>       tmpPlaces      = [:]
+    Map<Integer, Transition>  tmpTransitions = [:]
     
     /**
      * Imports files which were created PNML (http://pnml.lip6.fr/index.html) compliant editors
@@ -39,18 +39,51 @@ class PNMLUtility {
      * @param the name of the PNML (xml) file
      * @return the generated PetriNet object
      */
-    public static PetriNet pnmlImport(String file) {
+    public PetriNet pnmlImport(String file) {
+        def pnml = new XmlSlurper().parse(new File(file))
+
+        pnml.net.place.each {
+            String name = it.name.value
+            int id      = Integer.parseInt(it.@id.toString())
+            int tokens  = Integer.parseInt(it.initialMarking.token.value.toString())
+            
+            def p = new Place(name: name, tokens: tokens)
+
+            log.debug "Adding: $p"
+
+            tmpPlaces[id] = p
+        }
+
+        pnml.net.transition.each {
+            String name = it.name.value
+            int id      = Integer.parseInt(it.@id.toString())
+            
+            def t = new Transition(name: name)
+
+            log.debug "Adding: $t "
+            
+            tmpPlaces[id] = t
+        }
+
+        pnml.net.arc.each {
+            String name = it.name.value
+            int sourceID = Integer.parseInt(it.@source.toString())
+            int targetID = Integer.parseInt(it.@target.toString())
+            
+            log.debug "Arc name: $name, sourceID: $sourceID, targetID: $targetID"
+        }
+
         return null
     }
 
-    
+
     /**
      * Export the PetriNet to a PNML (http://pnml.lip6.fr/index.html) file
      * 
      * @param pn the PetriNet to be exported
      * @return the generated PNML string (xml)
      */
-    public static String pnmlIExport(PetriNet pn) {
+    public String pnmlIExport(PetriNet pn) {
         return ""
     }
 

@@ -20,14 +20,16 @@
  */
 package org.cristalise.pnengine;
 
-import org.junit.Test
-
 import static org.junit.Assert.*
+import groovy.transform.CompileStatic
+
+import org.junit.Test
 
 /**
  * @author kovax
  *
  */
+@CompileStatic
 class PetriNetTests {
     @Test
     public void originalTest() {
@@ -40,15 +42,14 @@ class PetriNetTests {
         def p2 = pn.place("p2");
         def p3 = pn.place("p3");
 
-        def a1 = pn.arc(      "a1", p1, t1);
-        def a2 = pn.arc(      "a2", t1, p2);
-        def a3 = pn.arc(      "a3", p2, t2);
-        def a4 = pn.arc(      "a4", t2, p3);
-        def i5 = pn.inhibitor("i5", p3, t1);
+        pn.connect(p1, t1);
+        pn.connect(t1, p2);
+        pn.connect(p2, t2);
+        pn.connect(t2, p3);
 
-        pn.printJson()
+//        pn.inhibitor("i5", p3, t1);
 
-        a2.setWeight(2);
+        pn.arcs.t1p2.weight = 2;
 
         assertTrue(p1.hasEnoughTokens(1));
         assertFalse(p1.maxTokensReached(1));
@@ -87,7 +88,7 @@ class PetriNetTests {
         assertEquals(0, p1.tokens);
         assertEquals(2, p2.tokens);
         
-        a3.setWeight(2);
+        pn.arcs.p2t2.setWeight(2);
         t2.fire();
         
         assertEquals(0, p1.tokens);

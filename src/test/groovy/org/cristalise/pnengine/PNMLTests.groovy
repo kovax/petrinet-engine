@@ -24,7 +24,6 @@ package org.cristalise.pnengine;
 import static org.junit.Assert.*
 import groovy.transform.CompileStatic
 
-import org.junit.Before
 import org.junit.Test
 
 /**
@@ -34,34 +33,27 @@ import org.junit.Test
 @CompileStatic
 class PNMLTests {
 
-    /**
-     * @throws java.lang.Exception
-     */
-    @Before
-    public void setUp() throws Exception {
-    }
-    
-    
-    public void generalPNAsserts(PetriNet pn) {
+    public void generalPNAsserts(PetriNet pn, Map sizes) {
         assert pn
         assert pn.transitions
+        assert pn.transitions.size() == sizes.transitions
         assert pn.places
-        assert pn.arcs
-        
-        assert ! pn.inhibitors
+        assert pn.places.size() == sizes.places
+//        assert pn.arcs
+//        assert pn.arcs.size() == sizes.arcs
     }
 
 
     @Test
     public void importANDSplitPNML() {
-        def pn = PNMLUtility.pnmlImport("src/test/data/ANDSlit.pnml")
-        generalPNAsserts(pn)
+        def pn = new PNMLUtility().pnmlImport("src/test/data/ANDSplit.pnml")
+        generalPNAsserts(pn, [transitions:4, places:6, arcs:11])
     }
 
 
     @Test
     public void importXORSplitPNML() {
-        def pn = PNMLUtility.pnmlImport("src/test/data/XORSlit.pnml")
-        generalPNAsserts(pn)
+        def pn = PNMLUtility.pnmlImport("src/test/data/XORSplit.pnml")
+        generalPNAsserts(pn, [transitions:4, places:4, arcs:8])
     }
 }

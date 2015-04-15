@@ -22,12 +22,14 @@ package org.cristalise.pnengine
 
 import groovy.transform.Canonical
 import groovy.transform.CompileStatic
+import groovy.transform.ToString
 
 /**
  * @author kovax
  *
  */
 @Canonical
+@ToString(includeNames = true, includePackage = false, includeSuper = true)
 @CompileStatic
 class Arc extends PNObject {
 

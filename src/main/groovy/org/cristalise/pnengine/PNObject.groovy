@@ -22,14 +22,16 @@ package org.cristalise.pnengine
 
 import groovy.transform.Canonical
 import groovy.transform.CompileStatic
+import groovy.transform.ToString
 
 /**
  * @author kovax
  *
  */
 @Canonical
+@ToString(includePackage = false)
 @CompileStatic
 class PNObject {
     String name = ""
-//    int id = -1
+    int index = -1
 }

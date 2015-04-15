@@ -22,18 +22,20 @@ package org.cristalise.pnengine
 
 import groovy.transform.Canonical
 import groovy.transform.CompileStatic
+import groovy.transform.ToString
 
 /**
  * @author kovax
  *
  */
 @Canonical
+@ToString(includeNames = true, includePackage = false, includeSuper = true)
 @CompileStatic
 class Transition  extends PNObject {
-    
-    private List<Arc> incoming = new ArrayList<Arc>();
-    private List<Arc> outgoing = new ArrayList<Arc>();
-    
+
+    List<Arc> incoming = [];
+    List<Arc> outgoing = [];
+
     public boolean canFire() {
         boolean canFire = true;
 

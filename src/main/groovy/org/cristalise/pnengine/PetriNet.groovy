@@ -20,8 +20,6 @@
  */
 package org.cristalise.pnengine
 
-import groovy.json.JsonBuilder
-import groovy.transform.Canonical
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
@@ -32,43 +30,54 @@ import org.cristalise.pnengine.Arc.Direction
  *
  */
 @Slf4j
-@Canonical
 @CompileStatic
-class PetriNet extends PNObject {
+class PetriNet {
+    
+    String name
 
-    Map<String, Place>        places      = [:]
-    Map<String, Transition>   transitions = [:]
-    Map<String, Arc>          arcs        = [:]
-    Map<String, InhibitorArc> inhibitors  = [:]
+    Map<String, Place>      places      = [:]
+    Map<String, Transition> transitions = [:]
+    Map<String, Arc>        arcs        = [:]
 
     PNObject cache = null
 
-    public String printJson() { println new JsonBuilder(this).toPrettyString() }
+//    public String printJson() { println new JsonBuilder(this).toPrettyString() }
 
-    public static PetriNet petrinet(String name, Closure cl) {
-        def pn = new PetriNet(name: name)
-
-        cl.delegate = pn
-        cl()
-        
-        return pn
+    /**
+     *     
+     * @param pno
+     */
+    public void add(PNObject pno) {
+        if(pno instanceof Place) {
+            if(places.containsKey(pno.name)) throw new RuntimeException("Place '${pno.name}' already exists")
+            places[pno.name] = (Place)pno
+        }
+        else if(pno instanceof Transition) {
+            if(transitions.containsKey(pno.name)) throw new RuntimeException("Transition '${pno.name}' already exists")
+            transitions[pno.name] = (Transition)pno
+        }
+        else if(pno instanceof Arc) {
+            if(arcs.containsKey(pno.name)) throw new RuntimeException("Arc '${pno.name}' already exists")
+            arcs[pno.name] = (Arc)pno
+        }
     }
 
+
     public List<Transition> listOfTransitionsAbleToFire() {
-        ArrayList<Transition> list = new ArrayList<Transition>();
-        for (Transition t : transitions.values()) {
-            if (t.canFire()) {
-                list.add(t);
-            }
-        }
+        List<Transition> list = []
+
+        transitions.values().each { if (it.canFire()) list.add(it) }
+
         return list;
     }
     
+
     public Transition transition(String name) {
         Transition t = new Transition(name: name);
         transitions[name] = t;
         return t;
     }
+
     
     public Place place(String name) {
         Place p = new Place(name: name);
@@ -76,38 +85,71 @@ class PetriNet extends PNObject {
         return p;
     }
 
+
     public Place place(String name, int initial) {
         Place p = new Place(name: name, tokens: initial);
         places[name] = p;
         return p;
     }
-    
-    public Arc arc(String name, Place p, Transition t) {
-        log.debug("Arc $name - direction ${Direction.Place2Transition}")
-        Arc arc = new Arc(name: name, place: p, transition: t, direction: Direction.Place2Transition);
-        t.addIncoming(arc);
-        arcs[name] = arc;
-        return arc;
+
+
+    public Arc connect(Place p, Transition t, int weight = 1) {
+        String arcName = p.name+t.name
+        Arc a = new Arc(name: arcName, place: p, transition: t, weight: weight, direction: Direction.Place2Transition);
+        log.debug("Adding: $a.name")
+        t.addIncoming(a);
+        arcs[arcName] = a;
+        return a;
     }
 
-    public Arc arc(String name, Transition t, Place p) {
-        log.debug("Arc $name - direction ${Direction.Transition2Place}")
-        Arc arc = new Arc(name: name, place: p, transition: t, direction: Direction.Transition2Place);
-        t.addOutgoing(arc);
-        arcs[name] = arc;
-        return arc;
+
+    public Arc connect(Transition t, Place p, int weight = 1) {
+        String arcName = t.name+p.name
+        Arc a = new Arc(name: arcName, place: p, transition: t, weight: weight, direction: Direction.Transition2Place);
+        log.debug("Adding: $a.name")
+        t.addOutgoing(a);
+        arcs[arcName] = a;
+        return a;
     }
     
-    public InhibitorArc inhibitor(String name, Place p, Transition t) {
-        log.debug("Inhibitor Arc $name - direction ${Direction.Transition2Place}")
-        InhibitorArc i = new InhibitorArc(name: name, place: p, transition: t, direction: Direction.Place2Transition);
-        arcs[name] = i;
-        return i;
+    
+    /**
+     * DSL method: Setup the Closure to create and fire a PN as 
+     * 
+     * @param name
+     * @param cl
+     * @return
+     */
+    public static PetriNet builder(String name, Closure cl) {
+        def pn = new PetriNet(name: name)
+
+        cl.delegate = pn
+        cl()
+        
+        return pn
     }
     
 
     /**
-     * This DSL method should be used before to() 
+     * DSL method: it should be used before to()
+     * 
+     * @param p
+     * @return
+     */
+    public PetriNet connect(Map<String,String> pno) {
+        if(pno.transition) {
+            if(transitions.containsKey(pno.transition)) return connect(transitions[pno.transition])
+            else                                        return connect(transition(pno.transition))
+        }
+        else if(pno.place) {
+            if(places.containsKey(pno.place)) return connect(places[pno.place])
+            else                              return connect(place(pno.place))
+        }
+        throw new RuntimeException("${pno} is unknow")
+    }
+
+    /**
+     * DSL method: it should be used before to() 
      * 
      * @param p
      * @return
@@ -119,7 +161,7 @@ class PetriNet extends PNObject {
 
 
     /**
-     * This DSL method should be used before to() 
+     * DSL method: should be used before to() 
      * 
      * @param t
      * @return
@@ -129,16 +171,35 @@ class PetriNet extends PNObject {
         return this
     }
 
+
     /**
-     * This DSL method should be used after connect() 
+     * DSL method: should be used after connect() 
+     * 
+     * @param p
+     * @return
+     */
+    public Arc to(Map<String,String> pno) {
+        if(pno.transition) {
+            if(transitions.containsKey(pno.transition)) return to(transitions[pno.transition])
+            else                                        return to(transition(pno.transition))
+        }
+        else if(pno.place) {
+            if(places.containsKey(pno.place)) return to(places[pno.place])
+            else                              return to(place(pno.place))
+        }
+        throw new RuntimeException("${pno} is unknow")
+    }
+
+        
+    /**
+     * DSL method: should be used after connect() 
      * 
      * @param p
      * @return
      */
     public Arc to(Transition t) {
         if(cache != null && cache instanceof Place) {
-            String arcName = cache.name + t.name 
-            Arc a = arc(arcName, (Place)cache, t)
+            Arc a = connect((Place)cache, t)
             cache = null
             return a
         }
@@ -148,17 +209,16 @@ class PetriNet extends PNObject {
         }
     }
 
-    
+
     /**
-     * This DSL method should be used after connect() 
+     * DSL method: should be used after connect() 
      * 
      * @param p
      * @return
      */
     public Arc to(Place p) {
         if(cache != null && cache instanceof Transition) {
-            String arcName = cache.name + p.name 
-            Arc a = arc(arcName, (Transition)cache, p)
+            Arc a = connect((Transition)cache, p)
             cache = null
             return a
         }
