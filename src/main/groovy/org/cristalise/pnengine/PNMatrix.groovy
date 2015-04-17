@@ -29,6 +29,7 @@ import org.la4j.Vector
 import org.la4j.matrix.dense.Basic2DMatrix
 import org.la4j.vector.dense.BasicVector
 
+
 /**
  * @author kovax
  *
@@ -49,7 +50,6 @@ class PNMatrix {
      * place 0 if Transition i does not have input from Place j.
      */
     private Matrix Dplus = null
-
     
     /**
      * Transition output matrix a.k.a. Postcondition matrix
@@ -63,7 +63,6 @@ class PNMatrix {
      * place 0 if Transition i does not have output from Place j. 
      */
     private Matrix Dminus = null
-    
 
     /**
      * Composite change matrix. 
@@ -72,12 +71,10 @@ class PNMatrix {
      */
     private Matrix D = null
 
-
     /**
      * 
      */
     private Vector currentMarking = null
-
 
     /**
      * Converts groovy array literal type to type required by la4j
@@ -116,15 +113,23 @@ class PNMatrix {
     }
 
     /**
+     * Converts la4j Vector compatible groovy array/List type
+     *
+     * @param markings
+     */
+    public List<List<Integer>> getD() {
+        return (List<List<Integer>>)D.toList()
+    }
+
+    /**
      * Computes the Composite matrix
      */
-    private void computeComposite() {
+    public void computeComposite() {
         assert Dplus && Dminus
 
         D = Dplus.subtract(Dminus)
     }
-    
-    
+
     /**
      * Computes the new marking using this formula: [transitions]*[D] + [currentMarking] 
      * 
@@ -141,22 +146,40 @@ class PNMatrix {
         return m
     }
 
-    
+    /**
+     * Fires an individual transition
+     * 
+     * @param i the index of the transition to be fires
+     * @return if the transition was fired or not
+     */
+    public boolean fire(int i) {
+        if(!D) computeComposite()
+        
+        if(i >= 0 && D.rows() >= i) {
+            def trans = new int[D.rows()]
+            trans[i] = 1
+            return fire(trans)
+        }
+        else {
+            throw new RuntimeException("Transition index out of bound $i")
+        }
+    }
+
     /**
      * Groovy list literal type compliant version of fire() method
      * 
      * @param trans 
-     * @return
+     * @return if the transition was fired or not
      */
     public boolean fire(List<Integer> trans) {
         fire((int[])trans.toArray())
     }
 
-
     /**
+     * Fires the given list of transitions
      * 
-     * @param trans
-     * @return
+     * @param trans the list of transition to be fired
+     * @return true if fire has created a new marking
      */
     public boolean fire(int[] trans) {
         if(!D) computeComposite()
@@ -175,12 +198,11 @@ class PNMatrix {
         }
     }
 
-
     /**
      * Check if an individual transition can fire or not
      * 
      * @param i the index of the Transition in the rows of D
-     * @return
+     * @return if the transition can fire or not
      */
     public boolean canFire(int i) {
         if(!D) computeComposite()

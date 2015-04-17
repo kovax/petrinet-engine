@@ -21,14 +21,14 @@
 
 package org.cristalise.pnengine;
 
-import static org.junit.Assert.*
 import groovy.transform.CompileStatic
 
 import org.junit.Before
 import org.junit.Test
 
+
 /**
- * Test is based on this webpage:
+ * Test is based on this web page:
  * http://www.techfak.uni-bielefeld.de/~mchen/BioPNML/Intro/MRPN.html
  */
 @CompileStatic
@@ -48,16 +48,26 @@ class PNMatrixTests {
                       [0, 1, 0, 0, 0], //t3
                       [0, 0, 1, 1, 0]] //t4
 
-        pnM.Dplus = [[1,1,0,0,0],
-                     [0,0,1,1,0],
-                     [0,0,0,1,0],
-                     [0,0,0,0,1]]
+                    //p1,p2,p3,p4,p5
+        pnM.Dplus = [[1, 1, 0, 0, 0], //t1
+                     [0, 0, 1, 1, 0], //t2
+                     [0, 0, 0, 1, 0], //t4
+                     [0, 0, 0, 0, 1]] //t5
 
         pnM.currentMarking = [2,1,0,0,0]
     }
 
     @Test
-    public void fullFiring() {
+    public void computeD() {
+        pnM.computeComposite()
+        assert pnM.D == [[ 1, 1, 0, 0 -1],
+                         [-1, 0, 1, 1, 0],
+                         [ 0,-1, 0, 1, 0],
+                         [ 0, 0,-1,-1, 1]]
+    }
+
+    @Test
+    public void fireAllTransition() {
         assert pnM.fire([0,1,1,0])
         assert pnM.currentMarking == [1,0,1,2,0]
 
@@ -72,7 +82,7 @@ class PNMatrixTests {
     }
 
     @Test
-    public void test() {
+    public void fireIndividualTransition() {
         assert ! pnM.canFire(0)
         assert   pnM.canFire(1)
         assert   pnM.canFire(2)

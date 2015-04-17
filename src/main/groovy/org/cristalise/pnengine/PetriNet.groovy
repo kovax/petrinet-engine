@@ -20,19 +20,19 @@
  */
 package org.cristalise.pnengine
 
+import groovy.json.JsonBuilder
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
 import org.cristalise.pnengine.Arc.Direction
 
 /**
- * @author kovax
- *
+ * 
  */
 @Slf4j
 @CompileStatic
 class PetriNet {
-    
+
     String name
 
     Map<String, Place>      places      = [:]
@@ -41,13 +41,13 @@ class PetriNet {
 
     PNObject cache = null
 
-//    public String printJson() { println new JsonBuilder(this).toPrettyString() }
+    public String printJson() { println new JsonBuilder(this).toPrettyString() }
 
     /**
-     *     
+     * 
      * @param pno
      */
-    public void add(PNObject pno) {
+    private void add(PNObject pno) {
         if(pno instanceof Place) {
             if(places.containsKey(pno.name)) throw new RuntimeException("Place '${pno.name}' already exists")
             places[pno.name] = (Place)pno
@@ -64,51 +64,54 @@ class PetriNet {
 
 
     public List<Transition> listOfTransitionsAbleToFire() {
-        List<Transition> list = []
-
-        transitions.values().each { if (it.canFire()) list.add(it) }
-
-        return list;
+        return transitions.values().collect { it.canFire() };
     }
     
 
     public Transition transition(String name) {
-        Transition t = new Transition(name: name);
-        transitions[name] = t;
+        Transition t = new Transition(parent: this, name: name);
+        add(t);
         return t;
     }
 
-    
-    public Place place(String name) {
-        Place p = new Place(name: name);
-        places[name] = p;
+
+    public Place place(String name, int initial = 0) {
+        Place p = new Place(parent: this, name: name, tokens: initial);
+        add(p);
         return p;
     }
 
 
-    public Place place(String name, int initial) {
-        Place p = new Place(name: name, tokens: initial);
-        places[name] = p;
-        return p;
-    }
-
-
+    /**
+     * 
+     * @param p Place from 
+     * @param t Transition to
+     * @param w weight of the Arc
+     * @return the new Arc
+     */
     public Arc connect(Place p, Transition t, int weight = 1) {
         String arcName = p.name+t.name
-        Arc a = new Arc(name: arcName, place: p, transition: t, weight: weight, direction: Direction.Place2Transition);
+        Arc a = new Arc(parent: this, name: arcName, placeName: p.name, weight: weight, direction: Direction.Place2Trans);
         log.debug("Adding: $a.name")
         t.addIncoming(a);
-        arcs[arcName] = a;
+        add(a);
         return a;
     }
 
 
+    /**
+     * 
+     * @param t Transition from
+     * @param p Place to
+     * @param w weight of the Arc
+     * @return the new Arc
+     */
     public Arc connect(Transition t, Place p, int weight = 1) {
         String arcName = t.name+p.name
-        Arc a = new Arc(name: arcName, place: p, transition: t, weight: weight, direction: Direction.Transition2Place);
+        Arc a = new Arc(parent: this, name: arcName, placeName: p.name, weight: weight, direction: Direction.Trans2Place);
         log.debug("Adding: $a.name")
         t.addOutgoing(a);
-        arcs[arcName] = a;
+        add(a);
         return a;
     }
     
@@ -147,6 +150,7 @@ class PetriNet {
         }
         throw new RuntimeException("${pno} is unknow")
     }
+
 
     /**
      * DSL method: it should be used before to() 

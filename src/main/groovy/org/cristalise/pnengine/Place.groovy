@@ -20,30 +20,31 @@
  */
 package org.cristalise.pnengine
 
-import groovy.transform.Canonical
 import groovy.transform.CompileStatic
 import groovy.transform.ToString
+import groovy.util.logging.Slf4j
 
 
 /**
- * @author kovax
  *
  */
-@Canonical
+@Slf4j
 @ToString(includeNames = true, includePackage = false, includeSuper = true)
 @CompileStatic
 class Place  extends PNObject {
 
     public static final int UNLIMITED = -1;
-    
+
     int tokens = 0;
     int maxTokens = UNLIMITED;
 
     public boolean hasEnoughTokens(int threshold) {
+        log.debug "hasEnoughTokens(threshold: $threshold) - $this"
         return (tokens >= threshold);
     }
 
     public boolean maxTokensReached(int newTokens) {
+        log.debug "maxTokensReached(newTokens: $newTokens) - $this"
         if (hasUnlimitedTokens()) {
             return false;
         }

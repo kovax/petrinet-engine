@@ -20,47 +20,49 @@
  */
 package org.cristalise.pnengine
 
-import groovy.transform.Canonical
 import groovy.transform.CompileStatic
 import groovy.transform.ToString
+import groovy.util.logging.Slf4j
 
 /**
- * @author kovax
  *
  */
-@Canonical
+@Slf4j
 @ToString(includeNames = true, includePackage = false, includeSuper = true)
 @CompileStatic
 class Transition  extends PNObject {
-
-    List<Arc> incoming = [];
-    List<Arc> outgoing = [];
+    
+    List<String> incoming = [];
+    List<String> outgoing = [];
 
     public boolean canFire() {
         boolean canFire = true;
 
-        canFire = ! this.isNotConnected();
+        log.debug "canFire() - $this"
+        
+        if(incoming.isEmpty() && outgoing.isEmpty()) return false
 
-        for (Arc arc : incoming) { canFire = canFire & arc.canFire(); }
-        for (Arc arc : outgoing) { canFire = canFire & arc.canFire(); }
+        for (String arcName : incoming) { canFire = canFire & parent.arcs[arcName].canFire(); }
+
+        if(!canFire) return canFire
+
+        for (String arcName : outgoing) { canFire = canFire & parent.arcs[arcName].canFire(); }
 
         return canFire;
     }
-    
+
     public void fire() {
-        for (Arc arc : incoming) { arc.fire(); }
-        for (Arc arc : outgoing) { arc.fire(); }
+        log.debug "fire() - $this"
+
+        for (String arcName : incoming) { parent.arcs[arcName].fire(); }
+        for (String arcName : outgoing) { parent.arcs[arcName].fire(); }
     }
     
     public void addIncoming(Arc arc) {
-        this.incoming.add(arc);
+        this.incoming.add(arc.name);
     }
     
     public void addOutgoing(Arc arc) {
-        this.outgoing.add(arc);
-    }
-
-    public boolean isNotConnected() {
-        return incoming.isEmpty() && outgoing.isEmpty();
+        this.outgoing.add(arc.name);
     }
 }

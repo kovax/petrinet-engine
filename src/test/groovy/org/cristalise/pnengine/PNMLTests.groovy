@@ -26,8 +26,8 @@ import groovy.transform.CompileStatic
 
 import org.junit.Test
 
+
 /**
- * @author kovax
  *
  */
 @CompileStatic

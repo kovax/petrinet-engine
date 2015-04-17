@@ -26,7 +26,6 @@ import groovy.transform.CompileStatic
 import org.junit.Test
 
 /**
- * @author kovax
  *
  */
 @CompileStatic
@@ -47,9 +46,9 @@ class PetriNetTests {
         pn.connect(p2, t2);
         pn.connect(t2, p3);
 
-//        pn.inhibitor("i5", p3, t1);
-
         pn.arcs.t1p2.weight = 2;
+        
+        pn.printJson()
 
         assertTrue(p1.hasEnoughTokens(1));
         assertFalse(p1.maxTokensReached(1));
@@ -88,7 +87,7 @@ class PetriNetTests {
         assertEquals(0, p1.tokens);
         assertEquals(2, p2.tokens);
         
-        pn.arcs.p2t2.setWeight(2);
+        pn.arcs.p2t2.weight = 2;
         t2.fire();
         
         assertEquals(0, p1.tokens);

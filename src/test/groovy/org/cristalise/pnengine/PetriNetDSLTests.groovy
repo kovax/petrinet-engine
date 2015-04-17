@@ -25,7 +25,6 @@ import static org.junit.Assert.*
 import org.junit.Test
 
 /**
- * @author kovax
  *
  */
 class PetriNetDSLTests {
@@ -51,6 +50,40 @@ class PetriNetDSLTests {
         assert pn.places.p1.tokens == 0
         assert ! pn.transitions.t1.canFire()
     }
+    
+
+    @Test
+    public void SameNameThrowsException() {
+        def pn = PetriNet.builder("p1->t1") {
+            try {
+                place "p1" withTokens 1
+                place "p1"
+                fail()
+            }
+            catch(RuntimeException e) {
+                assert e.message == "Place 'p1' already exists"
+            }
+
+            try {
+                transition "t1"
+                transition "t1"
+                fail()
+            }
+            catch(RuntimeException e) {
+                assert e.message == "Transition 't1' already exists"
+            }
+
+            try {
+                connect transition: "t1" to place: "p1" 
+                connect transition: "t1" to place: "p1" 
+                fail()
+            }
+            catch(RuntimeException e) {
+                assert e.message == "Arc 't1p1' already exists"
+            }
+        }
+    }
+
 
     @Test
     public void xorSplit() {
@@ -75,6 +108,7 @@ class PetriNetDSLTests {
         }
     }
 
+
     @Test
     public void andSplit() {
         PetriNet.builder("andSplit") {
@@ -84,9 +118,10 @@ class PetriNetDSLTests {
             connect place:      "p2" to transition: "t2"
             connect place:      "p3" to transition: "t3"
             connect transition: "t2" to place:      "p4"
-            connect transition: "t3" to place:      "p4"
+            connect transition: "t3" to place:      "p5"
             connect place:      "p4" to transition: "t4"
-
+            connect place:      "p5" to transition: "t4"
+            
             assert ! transitions.t1.canFire()
             assert ! transitions.t2.canFire()
             assert ! transitions.t3.canFire()
@@ -100,27 +135,38 @@ class PetriNetDSLTests {
             assert ! transitions.t4.canFire()
 
             transitions.t1.fire()
-            println "t1 fire =========================================="
 
+            assert places.p1.tokens == 0
+            assert places.p2.tokens == 1
+            assert places.p3.tokens == 1
+            assert places.p4.tokens == 0
+            assert places.p5.tokens == 0
+            
             assert ! transitions.t1.canFire()
             assert   transitions.t2.canFire()
             assert   transitions.t3.canFire()
             assert ! transitions.t4.canFire()
             
             transitions.t2.fire()
-            println "t2 fire =========================================="
+
+            assert places.p1.tokens == 0
+            assert places.p2.tokens == 0
+            assert places.p3.tokens == 1
+            assert places.p4.tokens == 1
+            assert places.p5.tokens == 0
 
             assert ! transitions.t1.canFire()
-            println "1"
             assert ! transitions.t2.canFire()
-            println "2"
             assert   transitions.t3.canFire()
-            println "3"
-//            assert ! transitions.t4.canFire()
-            println "4"
+            assert ! transitions.t4.canFire()
 
             transitions.t3.fire()
-            println "t3 fire =========================================="
+
+            assert places.p1.tokens == 0
+            assert places.p2.tokens == 0
+            assert places.p3.tokens == 0
+            assert places.p4.tokens == 1
+            assert places.p5.tokens == 1
             
             assert ! transitions.t1.canFire()
             assert ! transitions.t2.canFire()
@@ -128,16 +174,17 @@ class PetriNetDSLTests {
             assert   transitions.t4.canFire()
             
             transitions.t4.fire()
-            println "t4 fire =========================================="
             
             assert ! transitions.t1.canFire()
-            println "1"
             assert ! transitions.t2.canFire()
-            println "2"
             assert ! transitions.t3.canFire()
-            println "3"
-//            assert ! transitions.t4.canFire()
-            println "4"
+            assert ! transitions.t4.canFire()
+            
+            assert places.p1.tokens == 0
+            assert places.p2.tokens == 0
+            assert places.p3.tokens == 0
+            assert places.p4.tokens == 0
+            assert places.p5.tokens == 0
         }
     }
 }

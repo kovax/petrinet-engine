@@ -20,18 +20,17 @@
  */
 package org.cristalise.pnengine
 
-import groovy.transform.Canonical
 import groovy.transform.CompileStatic
 import groovy.transform.ToString
 
 /**
- * @author kovax
  *
  */
-@Canonical
 @ToString(includePackage = false)
 @CompileStatic
 class PNObject {
+
+    public PetriNet parent = null
+
     String name = ""
-    int index = -1
 }

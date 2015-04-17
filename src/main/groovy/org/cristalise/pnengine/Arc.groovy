@@ -18,60 +18,59 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.pnengine
+package org.cristalise.pnengine;
 
-import groovy.transform.Canonical
 import groovy.transform.CompileStatic
 import groovy.transform.ToString
+import groovy.util.logging.Slf4j
+
 
 /**
- * @author kovax
  *
  */
-@Canonical
-@ToString(includeNames = true, includePackage = false, includeSuper = true)
+@Slf4j
 @CompileStatic
+@ToString(includeNames = true, includePackage = false, includeSuper = true)
 class Arc extends PNObject {
 
-    Place      place;
-    Transition transition;
-    Direction  direction;
-    int        weight = 1;
+    Direction direction;
 
-    enum Direction {
-        Place2Transition {
-            @Override
-            public boolean canFire(Place p, int weight) {
-                return p.hasEnoughTokens(weight);
-            }
+    String placeName;
+    int weight = 1;
 
-            @Override
-            public void fire(Place p, int weight) {
-                p.removeTokens(weight);
-            }
-        },
-
-        Transition2Place {
-            @Override
-            public boolean canFire(Place p, int weight) {
-                return ! p.maxTokensReached(weight);
-            }
-
-            @Override
-            public void fire(Place p, int weight) {
-                p.addTokens(weight);
-            }
-        };
-
-        public abstract boolean canFire(Place p, int weight);
-        public abstract void fire(Place p, int weight);
-    }
+    public enum Direction { Place2Trans, Trans2Place }
 
     public boolean canFire() {
-        return direction.canFire(place, weight);
+        log.debug "canFire() - $this";
+
+        switch (direction) {
+            case Direction.Place2Trans:
+                return parent.places[placeName].hasEnoughTokens(weight);
+                break
+                
+            case Direction.Trans2Place: 
+                return ! parent.places[placeName].maxTokensReached(weight);
+                break
+                
+            default:
+                throw new IllegalArgumentException("Unhandled enum value of Arc.Direction:" +direction);
+        }
     }
 
     public void fire() {
-        direction.fire(place, weight);
+        log.debug "fire() - $this";
+
+        switch (direction) {
+            case Direction.Place2Trans: 
+                parent.places[placeName].removeTokens(weight)
+                break
+
+            case Direction.Trans2Place:
+                parent.places[placeName].addTokens(weight)
+                break
+    
+            default:
+                throw new IllegalArgumentException("Unhandled enum value of Arc.Direction:" +direction);
+        }
     }
 }
