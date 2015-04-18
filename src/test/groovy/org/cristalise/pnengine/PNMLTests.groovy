@@ -39,21 +39,21 @@ class PNMLTests {
         assert pn.transitions.size() == sizes.transitions
         assert pn.places
         assert pn.places.size() == sizes.places
-//        assert pn.arcs
-//        assert pn.arcs.size() == sizes.arcs
+        assert pn.arcs
+        assert pn.arcs.size() == sizes.arcs
     }
 
 
     @Test
     public void importANDSplitPNML() {
         def pn = new PNMLUtility().pnmlImport("src/test/data/ANDSplit.pnml")
-        generalPNAsserts(pn, [transitions:4, places:6, arcs:11])
+        generalPNAsserts(pn, [transitions:4, places:6, arcs:10])
     }
 
 
     @Test
     public void importXORSplitPNML() {
-        def pn = PNMLUtility.pnmlImport("src/test/data/XORSplit.pnml")
+        def pn = new PNMLUtility().pnmlImport("src/test/data/XORSplit.pnml")
         generalPNAsserts(pn, [transitions:4, places:4, arcs:8])
     }
 }

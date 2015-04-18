@@ -32,9 +32,13 @@ import groovy.util.logging.Slf4j
 @CompileStatic
 class Transition  extends PNObject {
     
+    //List of shortNames of incoming arcs
     List<String> incoming = [];
+    //List of shortNames of outgoing arcs
     List<String> outgoing = [];
 
+    String shortName() {return "t"+index}
+    
     public boolean canFire() {
         boolean canFire = true;
 
@@ -42,11 +46,11 @@ class Transition  extends PNObject {
         
         if(incoming.isEmpty() && outgoing.isEmpty()) return false
 
-        for (String arcName : incoming) { canFire = canFire & parent.arcs[arcName].canFire(); }
+        for (String arcShortName : incoming) { canFire = canFire & parent.arcs[arcShortName].canFire(); }
 
         if(!canFire) return canFire
 
-        for (String arcName : outgoing) { canFire = canFire & parent.arcs[arcName].canFire(); }
+        for (String arcShortName : outgoing) { canFire = canFire & parent.arcs[arcShortName].canFire(); }
 
         return canFire;
     }
@@ -54,15 +58,15 @@ class Transition  extends PNObject {
     public void fire() {
         log.trace "fire() - $this"
 
-        for (String arcName : incoming) { parent.arcs[arcName].fire(); }
-        for (String arcName : outgoing) { parent.arcs[arcName].fire(); }
+        for (String arcShortName : incoming) { parent.arcs[arcShortName].fire(); }
+        for (String arcShortName : outgoing) { parent.arcs[arcShortName].fire(); }
     }
     
     public void addIncoming(Arc arc) {
-        this.incoming.add(arc.name);
+        this.incoming.add(arc.shortName());
     }
-    
+
     public void addOutgoing(Arc arc) {
-        this.outgoing.add(arc.name);
+        this.outgoing.add(arc.shortName());
     }
 }

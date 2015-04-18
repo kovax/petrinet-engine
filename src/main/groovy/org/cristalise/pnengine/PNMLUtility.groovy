@@ -30,8 +30,7 @@ import groovy.util.logging.Slf4j
 @Slf4j
 class PNMLUtility {
 
-    Map<Integer, Place>       tmpPlaces      = [:]
-    Map<Integer, Transition>  tmpTransitions = [:]
+    Map<Integer, PNObject> cache = [:]
     
     /**
      * Imports files which were created PNML (http://pnml.lip6.fr/index.html) compliant editors
@@ -41,39 +40,40 @@ class PNMLUtility {
      */
     public PetriNet pnmlImport(String file) {
         def pnml = new XmlSlurper().parse(new File(file))
+        def pn = new PetriNet(name: "Imported from PNML")
 
         pnml.net.place.each {
             String name = it.name.value
             int id      = Integer.parseInt(it.@id.toString())
             int tokens  = Integer.parseInt(it.initialMarking.token.value.toString())
             
-            def p = new Place(name: name, tokens: tokens)
-
-            log.debug "Adding: $p"
-
-            tmpPlaces[id] = p
+            cache[id] = pn.place(name, tokens)
         }
 
         pnml.net.transition.each {
             String name = it.name.value
             int id      = Integer.parseInt(it.@id.toString())
-            
-            def t = new Transition(name: name)
 
-            log.debug "Adding: $t "
-            
-            tmpPlaces[id] = t
+            cache[id] =  pn.transition(name)
         }
+        
 
         pnml.net.arc.each {
             String name = it.name.value
             int sourceID = Integer.parseInt(it.@source.toString())
             int targetID = Integer.parseInt(it.@target.toString())
-            
-            log.debug "Arc name: $name, sourceID: $sourceID, targetID: $targetID"
-        }
 
-        return null
+            log.debug "Arc name: $name, sourceID: $sourceID, targetID: $targetID"
+
+            def source = cache[sourceID]
+            def target = cache[targetID]
+
+            pn.connect(source, target)
+        }
+        
+        pn.printJson()
+
+        return pn
     }
 
 

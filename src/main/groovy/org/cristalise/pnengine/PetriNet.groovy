@@ -35,9 +35,11 @@ class PetriNet {
 
     String name
 
-    int lastPlaceIndex = 0
-    int lastTransIndex = 0
-    int lastArcIndex = 0
+    int lastID = 0
+    
+    int lastPlaceIndex = 1
+    int lastTransIndex = 1
+    int lastArcIndex = 1
 
     Map<String, Place>      places      = [:]
     Map<String, Transition> transitions = [:]
@@ -54,16 +56,16 @@ class PetriNet {
     private void add(PNObject pno) {
         log.debug "adding $pno"
         if(pno instanceof Place) {
-            if(places.containsKey(pno.name)) throw new RuntimeException("Place '${pno.name}' already exists")
-            places[pno.name] = (Place)pno
+            if(places.containsKey(pno.shortName())) throw new RuntimeException("Place '${pno.shortName()}' already exists")
+            places[pno.shortName()] = (Place)pno
         }
         else if(pno instanceof Transition) {
-            if(transitions.containsKey(pno.name)) throw new RuntimeException("Transition '${pno.name}' already exists")
-            transitions[pno.name] = (Transition)pno
+            if(transitions.containsKey(pno.shortName())) throw new RuntimeException("Transition '${pno.shortName()}' already exists")
+            transitions[pno.shortName()] = (Transition)pno
         }
         else if(pno instanceof Arc) {
-            if(arcs.containsKey(pno.name)) throw new RuntimeException("Arc '${pno.name}' already exists")
-            arcs[pno.name] = (Arc)pno
+            if(arcs.containsKey(pno.shortName())) throw new RuntimeException("Arc '${pno.shortName()}' already exists")
+            arcs[pno.shortName()] = (Arc)pno
         }
     }
 
@@ -73,7 +75,7 @@ class PetriNet {
      */
     public List<Transition> listOfTransitionsAbleToFire() {
         return transitions.values().collect { it.canFire() };
-    }    
+    }
 
     /**
      * Factory method of Transition
@@ -82,7 +84,9 @@ class PetriNet {
      * @return
      */
     public Transition transition(String name) {
-        Transition t = new Transition(parent: this, name: name, index: lastTransIndex++);
+        if(transitions.containsKey(name)) throw new RuntimeException("Transition '$name' already exists")
+
+        Transition t = new Transition(parent: this, name: name, index: lastTransIndex++, ID: lastID++);
         add(t);
         return t;
     }
@@ -94,7 +98,9 @@ class PetriNet {
      * @return
      */
     public Place place(String name, int initial = 0) {
-        Place p = new Place(parent: this, name: name, tokens: initial, index: lastPlaceIndex++);
+        if(places.containsKey(name)) throw new RuntimeException("Place '$name' already exists")
+
+        Place p = new Place(parent: this, name: name, tokens: initial, index: lastPlaceIndex++, ID: lastID++);
         add(p);
         return p;
     }
@@ -103,13 +109,15 @@ class PetriNet {
      * Factory method of Arc
      * 
      * @param name
-     * @param placeName
+     * @param pIndex
+     * @param tIndex
      * @param weight
      * @param direction
      * @return
      */
-    public Arc arc(String name, String placeName, int weight, Direction direction) {
-        Arc a = new Arc(parent: this, name: name, placeName: placeName, weight: weight, direction: direction, index: lastArcIndex++);
+    public Arc arc(String name, int pIndex, int tIndex, int weight, Direction dir) {
+        Arc a = new Arc(parent: this, name: name, placeIndex: pIndex, transIndex: tIndex, weight: weight, 
+                        direction: dir, index: lastArcIndex++, ID: lastID++);
         add(a);
         return a;
     }
@@ -122,7 +130,7 @@ class PetriNet {
      * @return the new Arc
      */
     public Arc connect(Place p, Transition t, int weight = 1) {
-        Arc a = arc(p.name+t.name, p.name, weight, Direction.Place2Trans);
+        Arc a = arc(p.name+t.name, p.index, t.index, weight, Direction.Place2Trans);
         t.addIncoming(a);
         return a;
     }
@@ -135,7 +143,7 @@ class PetriNet {
      * @return the new Arc
      */
     public Arc connect(Transition t, Place p, int weight = 1) {
-        Arc a = arc(t.name+p.name, p.name, weight, Direction.Trans2Place);
+        Arc a = arc(t.name+p.name, p.index, t.index, weight, Direction.Trans2Place);
         t.addOutgoing(a);
         return a;
     }

@@ -34,10 +34,28 @@ class Arc extends PNObject {
 
     Direction direction;
 
-    String placeName;
+    int placeIndex;
+    int transIndex;
     int weight = 1;
 
     public enum Direction { Place2Trans, P2T, Trans2Place, T2P }
+    
+    String shortName() {
+        switch (direction) {
+            case Direction.Place2Trans:
+            case Direction.P2T:
+                return "p"+placeIndex+"t"+transIndex;
+                break
+                
+            case Direction.Trans2Place: 
+            case Direction.T2P:
+                return "t"+transIndex+"p"+placeIndex;
+                break
+                
+            default:
+                throw new IllegalArgumentException("Unhandled enum value of Arc.Direction:" +direction);
+        }
+    }
     
     public boolean canFire() {
         log.trace "canFire() - $this";
@@ -45,12 +63,12 @@ class Arc extends PNObject {
         switch (direction) {
             case Direction.Place2Trans:
             case Direction.P2T:
-                return parent.places[placeName].hasEnoughTokens(weight);
+                return parent.places["p"+placeIndex].hasEnoughTokens(weight);
                 break
                 
             case Direction.Trans2Place: 
             case Direction.T2P:
-                return ! parent.places[placeName].maxTokensReached(weight);
+                return ! parent.places["p"+placeIndex].maxTokensReached(weight);
                 break
                 
             default:
@@ -64,12 +82,12 @@ class Arc extends PNObject {
         switch (direction) {
             case Direction.Place2Trans: 
             case Direction.P2T:
-                parent.places[placeName].removeTokens(weight)
+                parent.places["p"+placeIndex].removeTokens(weight)
                 break
 
             case Direction.Trans2Place:
             case Direction.T2P:
-                parent.places[placeName].addTokens(weight)
+                parent.places["p"+placeIndex].addTokens(weight)
                 break
     
             default:

@@ -28,10 +28,13 @@ import groovy.transform.ToString
  */
 @ToString(includePackage = false)
 @CompileStatic
-class PNObject {
+abstract class PNObject {
 
     public PetriNet parent = null
 
+    int ID = -1
     String name = ""
     int index = -1
+    
+    abstract String shortName();
 }

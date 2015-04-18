@@ -38,6 +38,8 @@ class Place  extends PNObject {
     int tokens = 0;
     int maxTokens = UNLIMITED;
 
+    String shortName() {return "p$index"}
+    
     public boolean hasEnoughTokens(int threshold) {
         log.trace "hasEnoughTokens(threshold: $threshold) - $this"
         return (tokens >= threshold);

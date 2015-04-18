@@ -53,7 +53,7 @@ class PetriNetDSLTests {
     
 
     @Test
-    public void SameNameThrowsException() {
+    public void SamePlaceNameThrowsException() {
         PetriNet.builder("p1->t1") {
             try {
                 place "p1" withTokens 1
@@ -64,7 +64,10 @@ class PetriNetDSLTests {
                 assert e.message == "Place 'p1' already exists"
             }
         }
+    }
 
+    @Test
+    public void SameTransNameThrowsException() {
         PetriNet.builder("p1->t1") {
             try {
                 transition "t1"
@@ -75,18 +78,24 @@ class PetriNetDSLTests {
                 assert e.message == "Transition 't1' already exists"
             }
         }
+    }
 
+    @Test
+    public void SameArcNameThrowsException() {
         PetriNet.builder("p1->t1") {
             try {
-                connect transition: "t1" to place: "p1" 
-                connect transition: "t1" to place: "p1" 
+                connect transition: "t1" to place: "p1"
+                connect transition: "t1" to place: "p1"
                 fail()
             }
             catch(RuntimeException e) {
                 assert e.message == "Arc 't1p1' already exists"
             }
         }
+    }
 
+    @Test
+    public void SameArcThrowsException() {
         PetriNet.builder("p1->t1") {
             try {
                 def t1 = transition "t1"
@@ -101,7 +110,6 @@ class PetriNetDSLTests {
             }
         }
     }
-
 
     @Test
     public void xorSplit() {
@@ -242,7 +250,7 @@ class PetriNetDSLTests {
             connect place:      "p4" to transition: "t4"
             connect place:      "p5" to transition: "t4"
         }
-        
+        pn.printJson()
         checkAndSplit(pn)
     }
 }
