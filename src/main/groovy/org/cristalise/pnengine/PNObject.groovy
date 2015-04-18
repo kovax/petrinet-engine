@@ -33,4 +33,5 @@ class PNObject {
     public PetriNet parent = null
 
     String name = ""
+    int index = -1
 }
