@@ -24,7 +24,6 @@ import groovy.transform.CompileStatic
 import groovy.transform.ToString
 import groovy.util.logging.Slf4j
 
-
 /**
  *
  */
@@ -38,17 +37,19 @@ class Arc extends PNObject {
     String placeName;
     int weight = 1;
 
-    public enum Direction { Place2Trans, Trans2Place }
-
+    public enum Direction { Place2Trans, P2T, Trans2Place, T2P }
+    
     public boolean canFire() {
-        log.debug "canFire() - $this";
+        log.trace "canFire() - $this";
 
         switch (direction) {
             case Direction.Place2Trans:
+            case Direction.P2T:
                 return parent.places[placeName].hasEnoughTokens(weight);
                 break
                 
             case Direction.Trans2Place: 
+            case Direction.T2P:
                 return ! parent.places[placeName].maxTokensReached(weight);
                 break
                 
@@ -58,14 +59,16 @@ class Arc extends PNObject {
     }
 
     public void fire() {
-        log.debug "fire() - $this";
+        log.trace "fire() - $this";
 
         switch (direction) {
             case Direction.Place2Trans: 
+            case Direction.P2T:
                 parent.places[placeName].removeTokens(weight)
                 break
 
             case Direction.Trans2Place:
+            case Direction.T2P:
                 parent.places[placeName].addTokens(weight)
                 break
     

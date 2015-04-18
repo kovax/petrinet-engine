@@ -38,7 +38,7 @@ class Transition  extends PNObject {
     public boolean canFire() {
         boolean canFire = true;
 
-        log.debug "canFire() - $this"
+        log.trace "canFire() - $this"
         
         if(incoming.isEmpty() && outgoing.isEmpty()) return false
 
@@ -52,7 +52,7 @@ class Transition  extends PNObject {
     }
 
     public void fire() {
-        log.debug "fire() - $this"
+        log.trace "fire() - $this"
 
         for (String arcName : incoming) { parent.arcs[arcName].fire(); }
         for (String arcName : outgoing) { parent.arcs[arcName].fire(); }
