@@ -35,6 +35,10 @@ class PetriNet {
 
     String name
 
+    int lastPlaceIndex = 0
+    int lastTransIndex = 0
+    int lastArcIndex = 0
+
     Map<String, Place>      places      = [:]
     Map<String, Transition> transitions = [:]
     Map<String, Arc>        arcs        = [:]
@@ -48,6 +52,7 @@ class PetriNet {
      * @param pno
      */
     private void add(PNObject pno) {
+        log.debug "adding $pno"
         if(pno instanceof Place) {
             if(places.containsKey(pno.name)) throw new RuntimeException("Place '${pno.name}' already exists")
             places[pno.name] = (Place)pno
@@ -62,25 +67,52 @@ class PetriNet {
         }
     }
 
-
+    /**
+     * 
+     * @return
+     */
     public List<Transition> listOfTransitionsAbleToFire() {
         return transitions.values().collect { it.canFire() };
-    }
-    
+    }    
 
+    /**
+     * Factory method of Transition
+     * 
+     * @param name
+     * @return
+     */
     public Transition transition(String name) {
-        Transition t = new Transition(parent: this, name: name);
+        Transition t = new Transition(parent: this, name: name, index: lastTransIndex++);
         add(t);
         return t;
     }
 
-
+    /**
+     * Factory method of Place
+     * 
+     * @param name
+     * @return
+     */
     public Place place(String name, int initial = 0) {
-        Place p = new Place(parent: this, name: name, tokens: initial);
+        Place p = new Place(parent: this, name: name, tokens: initial, index: lastPlaceIndex++);
         add(p);
         return p;
     }
 
+    /**
+     * Factory method of Arc
+     * 
+     * @param name
+     * @param placeName
+     * @param weight
+     * @param direction
+     * @return
+     */
+    public Arc arc(String name, String placeName, int weight, Direction direction) {
+        Arc a = new Arc(parent: this, name: name, placeName: placeName, weight: weight, direction: direction, index: lastArcIndex++);
+        add(a);
+        return a;
+    }
 
     /**
      * 
@@ -90,14 +122,10 @@ class PetriNet {
      * @return the new Arc
      */
     public Arc connect(Place p, Transition t, int weight = 1) {
-        String arcName = p.name+t.name
-        Arc a = new Arc(parent: this, name: arcName, placeName: p.name, weight: weight, direction: Direction.Place2Trans);
-        log.debug("Adding: $a.name")
+        Arc a = arc(p.name+t.name, p.name, weight, Direction.Place2Trans);
         t.addIncoming(a);
-        add(a);
         return a;
     }
-
 
     /**
      * 
@@ -107,15 +135,57 @@ class PetriNet {
      * @return the new Arc
      */
     public Arc connect(Transition t, Place p, int weight = 1) {
-        String arcName = t.name+p.name
-        Arc a = new Arc(parent: this, name: arcName, placeName: p.name, weight: weight, direction: Direction.Trans2Place);
-        log.debug("Adding: $a.name")
+        Arc a = arc(t.name+p.name, p.name, weight, Direction.Trans2Place);
         t.addOutgoing(a);
-        add(a);
         return a;
     }
     
+    /**
+     * DSL method: 
+     * 
+     * @param cl
+     */
+    public void exec(Closure cl) {
+        cl.delegate = this
+        cl()
+    }
     
+    /**
+     * DSL method: 
+     * 
+     * @param name
+     * @param pnList
+     * @return
+     */
+    public static PetriNet builder(String name, List pnList, Closure cl = null) {
+        PetriNet pn = new PetriNet(name: name)
+        
+        pnList.each {
+            if(it instanceof List<Map<String,String>>) {
+                def row = (List<Map<String,String>>)it
+                pn.connect row[0] to row[1]
+            }
+            else if(it instanceof Map<String,String>) {
+                def row = (Map<String,String>)it
+                def d = Direction.valueOf(row.direction)
+                switch(d) {
+                    case Direction.Trans2Place:
+                    case Direction.T2P:
+                        pn.connect transition: row.transition to place: row.place
+                        break
+                    case Direction.Place2Trans:
+                    case Direction.P2T:
+                        pn.connect place: row.place to transition: row.transition
+                        break
+                }
+            }
+        }
+
+        if(cl) cl()
+
+        return pn
+    }
+
     /**
      * DSL method: Setup the Closure to create and fire a PN as 
      * 
@@ -131,7 +201,6 @@ class PetriNet {
         
         return pn
     }
-    
 
     /**
      * DSL method: it should be used before to()
@@ -151,7 +220,6 @@ class PetriNet {
         throw new RuntimeException("${pno} is unknow")
     }
 
-
     /**
      * DSL method: it should be used before to() 
      * 
@@ -159,10 +227,10 @@ class PetriNet {
      * @return
      */
     public PetriNet connect(Place p) {
+        log.debug "Adding to cache - $p"
         cache = p
         return this
     }
-
 
     /**
      * DSL method: should be used before to() 
@@ -171,10 +239,10 @@ class PetriNet {
      * @return
      */
     public PetriNet connect(Transition t) {
+        log.debug "Adding to cache - $t"
         cache = t
         return this
     }
-
 
     /**
      * DSL method: should be used after connect() 
@@ -194,7 +262,6 @@ class PetriNet {
         throw new RuntimeException("${pno} is unknow")
     }
 
-        
     /**
      * DSL method: should be used after connect() 
      * 
@@ -212,7 +279,6 @@ class PetriNet {
             throw new RuntimeException("Call connect(Place) before caling to(Transition)")
         }
     }
-
 
     /**
      * DSL method: should be used after connect() 
