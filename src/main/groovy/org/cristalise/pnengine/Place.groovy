@@ -39,12 +39,12 @@ class Place  extends PNObject {
     int maxTokens = UNLIMITED;
 
     public boolean hasEnoughTokens(int threshold) {
-        log.debug "hasEnoughTokens(threshold: $threshold) - $this"
+        log.trace "hasEnoughTokens(threshold: $threshold) - $this"
         return (tokens >= threshold);
     }
 
     public boolean maxTokensReached(int newTokens) {
-        log.debug "maxTokensReached(newTokens: $newTokens) - $this"
+        log.trace "maxTokensReached(newTokens: $newTokens) - $this"
         if (hasUnlimitedTokens()) {
             return false;
         }
