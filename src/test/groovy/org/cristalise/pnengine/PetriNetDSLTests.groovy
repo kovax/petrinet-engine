@@ -54,7 +54,7 @@ class PetriNetDSLTests {
 
     @Test
     public void SameNameThrowsException() {
-        def pn = PetriNet.builder("p1->t1") {
+        PetriNet.builder("p1->t1") {
             try {
                 place "p1" withTokens 1
                 place "p1"
@@ -63,7 +63,9 @@ class PetriNetDSLTests {
             catch(RuntimeException e) {
                 assert e.message == "Place 'p1' already exists"
             }
+        }
 
+        PetriNet.builder("p1->t1") {
             try {
                 transition "t1"
                 transition "t1"
@@ -72,10 +74,26 @@ class PetriNetDSLTests {
             catch(RuntimeException e) {
                 assert e.message == "Transition 't1' already exists"
             }
+        }
 
+        PetriNet.builder("p1->t1") {
             try {
                 connect transition: "t1" to place: "p1" 
                 connect transition: "t1" to place: "p1" 
+                fail()
+            }
+            catch(RuntimeException e) {
+                assert e.message == "Arc 't1p1' already exists"
+            }
+        }
+
+        PetriNet.builder("p1->t1") {
+            try {
+                def t1 = transition "t1"
+                def p1 = place "p1" withTokens 1
+
+                connect t1 to p1
+                connect t1 to p1
                 fail()
             }
             catch(RuntimeException e) {
@@ -108,20 +126,9 @@ class PetriNetDSLTests {
         }
     }
 
-
-    @Test
-    public void andSplit() {
-        PetriNet.builder("andSplit") {
-            connect place:      "p1" to transition: "t1"
-            connect transition: "t1" to place:      "p2"
-            connect transition: "t1" to place:      "p3"
-            connect place:      "p2" to transition: "t2"
-            connect place:      "p3" to transition: "t3"
-            connect transition: "t2" to place:      "p4"
-            connect transition: "t3" to place:      "p5"
-            connect place:      "p4" to transition: "t4"
-            connect place:      "p5" to transition: "t4"
-            
+    
+    public void checkAndSplit(PetriNet pn) {
+        pn.exec {
             assert ! transitions.t1.canFire()
             assert ! transitions.t2.canFire()
             assert ! transitions.t3.canFire()
@@ -186,5 +193,56 @@ class PetriNetDSLTests {
             assert places.p4.tokens == 0
             assert places.p5.tokens == 0
         }
+    }
+
+    //type is List<List<Map<String,String>>> - order is kept so direction can be calculated
+    def andSplit1 = [[[place:      "p1"], [transition: "t1"]],
+                     [[transition: "t1"], [place:      "p2"]],
+                     [[transition: "t1"], [place:      "p3"]],
+                     [[place:      "p2"], [transition: "t2"]],
+                     [[place:      "p3"], [transition: "t3"]],
+                     [[transition: "t2"], [place:      "p4"]],
+                     [[transition: "t3"], [place:      "p5"]],
+                     [[place:      "p4"], [transition: "t4"]],
+                     [[place:      "p5"], [transition: "t4"]]]
+
+    //type is List<Map<String,String>> similar to CSV - order is not kept hence the need to use direction 
+    def andSplit2 = [[place:      "p1", transition: "t1", direction: "P2T"],
+                     [transition: "t1", place:      "p2", direction: "T2P"],
+                     [transition: "t1", place:      "p3", direction: "T2P"],
+                     [place:      "p2", transition: "t2", direction: "P2T"],
+                     [place:      "p3", transition: "t3", direction: "P2T"],
+                     [transition: "t2", place:      "p4", direction: "T2P"],
+                     [transition: "t3", place:      "p5", direction: "T2P"],
+                     [place:      "p4", transition: "t4", direction: "P2T"],
+                     [place:      "p5", transition: "t4", direction: "P2T"]]
+
+    @Test
+    public void andSplitFromMap1() {
+        def pn = PetriNet.builder("andSplit", andSplit1)
+        checkAndSplit(pn)
+    }
+
+    @Test
+    public void andSplitFromMap2() {
+        def pn = PetriNet.builder("andSplit", andSplit2)
+        checkAndSplit(pn)
+    }
+
+    @Test
+    public void andSplit() {
+        def pn = PetriNet.builder("andSplit") {
+            connect place:      "p1" to transition: "t1"
+            connect transition: "t1" to place:      "p2"
+            connect transition: "t1" to place:      "p3"
+            connect place:      "p2" to transition: "t2"
+            connect place:      "p3" to transition: "t3"
+            connect transition: "t2" to place:      "p4"
+            connect transition: "t3" to place:      "p5"
+            connect place:      "p4" to transition: "t4"
+            connect place:      "p5" to transition: "t4"
+        }
+        
+        checkAndSplit(pn)
     }
 }
