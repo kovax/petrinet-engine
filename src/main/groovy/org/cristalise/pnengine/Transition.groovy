@@ -57,6 +57,8 @@ class Transition  extends PNObject {
 
     public void fire() {
         log.trace "fire() - $this"
+        
+        if(!canFire()) throw new RuntimeException("")
 
         for (String arcShortName : incoming) { parent.arcs[arcShortName].fire(); }
         for (String arcShortName : outgoing) { parent.arcs[arcShortName].fire(); }
