@@ -160,7 +160,11 @@ class PetriNetDSLTests {
             assert places.p3.tokens == 1
             assert places.p4.tokens == 0
             assert places.p5.tokens == 0
-            
+
+            def tList = listOfTransitionsAbleToFire()
+            assert tList.size() == 2
+            assert tList == [transitions.t2, transitions.t3]
+
             assert ! transitions.t1.canFire()
             assert   transitions.t2.canFire()
             assert   transitions.t3.canFire()

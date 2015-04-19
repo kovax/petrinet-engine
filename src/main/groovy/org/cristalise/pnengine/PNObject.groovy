@@ -24,7 +24,7 @@ import groovy.transform.CompileStatic
 import groovy.transform.ToString
 
 /**
- *
+ * Base class for all objects in the PetriNet
  */
 @ToString(includePackage = false)
 @CompileStatic
@@ -32,9 +32,9 @@ abstract class PNObject {
 
     public PetriNet parent = null
 
-    int ID = -1
-    String name = ""
-    int index = -1
-    
-    abstract String shortName();
+    int    ID    = -1
+    int    index = -1
+    String name  = ""
+
+    public abstract String shortName();
 }

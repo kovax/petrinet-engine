@@ -26,7 +26,7 @@ import groovy.util.logging.Slf4j
 
 
 /**
- *
+ * 
  */
 @Slf4j
 @ToString(includeNames = true, includePackage = false, includeSuper = true)
@@ -38,13 +38,28 @@ class Place  extends PNObject {
     int tokens = 0;
     int maxTokens = UNLIMITED;
 
-    String shortName() {return "p$index"}
+    /**
+     * Returns the shortName of the Place - "p"+index
+     */
+    public String shortName() {
+        return "p$index"
+    }
     
+    /**
+     * 
+     * @param threshold
+     * @return
+     */
     public boolean hasEnoughTokens(int threshold) {
         log.trace "hasEnoughTokens(threshold: $threshold) - $this"
         return (tokens >= threshold);
     }
 
+    /**
+     * 
+     * @param newTokens
+     * @return
+     */
     public boolean maxTokensReached(int newTokens) {
         log.trace "maxTokensReached(newTokens: $newTokens) - $this"
         if (hasUnlimitedTokens()) {
@@ -53,20 +68,38 @@ class Place  extends PNObject {
         return (tokens+newTokens > maxTokens);
     }
 
+    /**
+     * 
+     * @return
+     */
     private boolean hasUnlimitedTokens() {
         return maxTokens == UNLIMITED;
     }
 
+    /**
+     * 
+     * @param initial
+     * @return
+     */
     public Place withTokens(int initial) {
         tokens = initial
         return this
     }
-        
+
+    /**
+     * 
+     * @param weight
+     */
     public void addTokens(int weight) {
         this.tokens += weight;
     }
 
+    /**
+     * 
+     * @param weight
+     */
     public void removeTokens(int weight) {
+        if(tokens - weight < 0) throw new RuntimeException("Place ${shortName()} has not got enough tokens (tokens:$tokens minus weight: $weight)")
         this.tokens -= weight;
     }
 }

@@ -37,7 +37,12 @@ class Transition  extends PNObject {
     //List of shortNames of outgoing arcs
     List<String> outgoing = [];
 
-    String shortName() {return "t"+index}
+    /**
+     * 
+     */
+    public String shortName() {
+        return "t"+index
+    }
     
     public boolean canFire() {
         boolean canFire = true;

@@ -22,24 +22,26 @@ package org.cristalise.pnengine
 
 import groovy.json.JsonBuilder
 import groovy.transform.CompileStatic
+import groovy.transform.TupleConstructor
 import groovy.util.logging.Slf4j
 
 import org.cristalise.pnengine.Arc.Direction
+
 
 /**
  * 
  */
 @Slf4j
 @CompileStatic
+@TupleConstructor(includeFields=true)
 class PetriNet {
 
     String name
 
-    int lastID = 0
-    
+    int lastID         = 0    
     int lastPlaceIndex = 1
     int lastTransIndex = 1
-    int lastArcIndex = 1
+    int lastArcIndex   = 1
 
     Map<String, Place>      places      = [:]
     Map<String, Transition> transitions = [:]
@@ -50,11 +52,14 @@ class PetriNet {
     public String printJson() { println new JsonBuilder(this).toPrettyString() }
 
     /**
+     * Adds the PNObject to the correct list of the PetriNet
+     * RuntimeException is thrown if the same PNObject was already added to the net with the same shortName.
      * 
-     * @param pno
+     * @param pno the given PNObject
      */
     private void add(PNObject pno) {
-        log.debug "adding $pno"
+        log.debug "add() $pno"
+
         if(pno instanceof Place) {
             if(places.containsKey(pno.shortName())) throw new RuntimeException("Place '${pno.shortName()}' already exists")
             places[pno.shortName()] = (Place)pno
@@ -70,20 +75,23 @@ class PetriNet {
     }
 
     /**
+     * Computes the list of Transitions which can be fired
      * 
-     * @return
+     * @return the list of Transitions which can be fired
      */
     public List<Transition> listOfTransitionsAbleToFire() {
-        return transitions.values().collect { it.canFire() };
+        return (List<Transition>)transitions.values().findAll { it.canFire() };
     }
 
     /**
-     * Factory method of Transition
+     * Factory method of Transition, it also adds the Transition to the PetriNet. 
+     * RuntimeException is thrown if the Transition was already added to the net with the same name
      * 
      * @param name
-     * @return
+     * @return the new Transition
      */
     public Transition transition(String name) {
+        //This check is a small trick to make sure that calling transition('t1') twice will fail
         if(transitions.containsKey(name)) throw new RuntimeException("Transition '$name' already exists")
 
         Transition t = new Transition(parent: this, name: name, index: lastTransIndex++, ID: lastID++);
@@ -92,12 +100,14 @@ class PetriNet {
     }
 
     /**
-     * Factory method of Place
+     * Factory method of Place, it also adds the Place to the PetriNet.
+     * RuntimeException is thrown if the Place was already added to the net with the same name
      * 
      * @param name
-     * @return
+     * @return the new Place
      */
     public Place place(String name, int initial = 0) {
+        //This check is a small trick to make sure that calling place('t1') twice will fail
         if(places.containsKey(name)) throw new RuntimeException("Place '$name' already exists")
 
         Place p = new Place(parent: this, name: name, tokens: initial, index: lastPlaceIndex++, ID: lastID++);
@@ -105,17 +115,18 @@ class PetriNet {
         return p;
     }
 
+
     /**
-     * Factory method of Arc
+     * Factory method of Arc, it also adds the Arc to the PetriNet. This should only be called connect() and to() methods.
      * 
-     * @param name
-     * @param pIndex
-     * @param tIndex
-     * @param weight
-     * @param direction
-     * @return
+     * @param name the name of the Arc
+     * @param pIndex the index of the Place
+     * @param tIndex the index of the Transition
+     * @param weight the weight of the Arc (how many tokens it consumes)
+     * @param direction the Arc has direction : Place2Trans or Trans2Place
+     * @return the newly created Arc
      */
-    public Arc arc(String name, int pIndex, int tIndex, int weight, Direction dir) {
+    private Arc arc(String name, int pIndex, int tIndex, int weight, Direction dir) {
         Arc a = new Arc(parent: this, name: name, placeIndex: pIndex, transIndex: tIndex, weight: weight, 
                         direction: dir, index: lastArcIndex++, ID: lastID++);
         add(a);
@@ -123,10 +134,14 @@ class PetriNet {
     }
 
     /**
+     * Connects the given Place to the given Transition using the given weight. It adds the new
+     * Arc to the PetriNet. The Arc shortName will be the concatenated shortNames of Place and Transition.
+     * Arc is added to the incoming list of Transition.
+     * RuntimeException is thrown if the same Arc was already added to the net.
      * 
      * @param p Place from 
      * @param t Transition to
-     * @param w weight of the Arc
+     * @param w weight of the Arc (defaults to 1)
      * @return the new Arc
      */
     public Arc connect(Place p, Transition t, int weight = 1) {
@@ -136,6 +151,10 @@ class PetriNet {
     }
 
     /**
+     * Connects the given Transition to the given Place using the given weight. It adds the new
+     * Arc to the PetriNet. The Arc shortName will be the concatenated shortNames of Transition and Place.
+     * RuntimeException is thrown if the same Arc was already added to the net.
+     * Arc is added to the outgoing list of Transition.
      * 
      * @param t Transition from
      * @param p Place to
@@ -149,9 +168,9 @@ class PetriNet {
     }
     
     /**
-     * DSL method: 
+     * DSL method: Sets up a closure to be executed in the context of the PetriNet
      * 
-     * @param cl
+     * @param cl the closure containing the instructions
      */
     public void exec(Closure cl) {
         cl.delegate = this
@@ -159,15 +178,16 @@ class PetriNet {
     }
     
     /**
-     * DSL method: 
+     * DSL method: Builder method to create the PetriNet from a CVS like structure.
      * 
-     * @param name
-     * @param pnList
-     * @return
+     * @param name the name of the PN
+     * @param pnList the list containing the PN description
+     * @param cl the closure containing the instructions
+     * @return the new PetriNet
      */
     public static PetriNet builder(String name, List pnList, Closure cl = null) {
         PetriNet pn = new PetriNet(name: name)
-        
+
         pnList.each {
             if(it instanceof List<Map<String,String>>) {
                 def row = (List<Map<String,String>>)it
@@ -189,17 +209,20 @@ class PetriNet {
             }
         }
 
-        if(cl) cl()
+        if(cl) {
+            cl.delegate = pn
+            cl()
+        }
 
         return pn
     }
 
     /**
-     * DSL method: Setup the Closure to create and fire a PN as 
+     * DSL method: Sets up the Closure to create and fire the new PetriNet
      * 
-     * @param name
-     * @param cl
-     * @return
+     * @param name the name of the PN
+     * @param cl the closure containing the instructions
+     * @return the new PetriNet
      */
     public static PetriNet builder(String name, Closure cl) {
         def pn = new PetriNet(name: name)
@@ -211,12 +234,26 @@ class PetriNet {
     }
 
     /**
+     * DSL method: Adds a Place/Transition to the PetriNet based on the naming convention of shortNames.
+     * If the Place/Transition was already exist, it only adds to an internal cache, so the subsequent to()
+     * method call will be able to use it.
+     * 
+     * @param shortName the shortName of the PNObject it must start with 't' or 'p'
+     * @return the PetriNet (fluent API)
+     */
+    public PetriNet connect(String shortName) {
+        if     (shortName.startsWith('p')) return connect(place:      shortName)
+        else if(shortName.startsWith('t')) return connect(transition: shortName)
+        else                               throw new RuntimeException("ShortName '$shortName' must start with 't' or 'p'");
+    }
+
+    /**
      * DSL method: it should be used before to()
      * 
      * @param p
-     * @return
+     * @return the PetriNet (fluent API)
      */
-    public PetriNet connect(Map<String,String> pno) {
+    public PetriNet connect(Map<String, String> pno) {
         if(pno.transition) {
             if(transitions.containsKey(pno.transition)) return connect(transitions[pno.transition])
             else                                        return connect(transition(pno.transition))
@@ -232,7 +269,7 @@ class PetriNet {
      * DSL method: it should be used before to() 
      * 
      * @param p
-     * @return
+     * @return the PetriNet (fluent API)
      */
     public PetriNet connect(Place p) {
         log.debug "Adding to cache - $p"
@@ -244,7 +281,7 @@ class PetriNet {
      * DSL method: should be used before to() 
      * 
      * @param t
-     * @return
+     * @return the PetriNet (fluent API)
      */
     public PetriNet connect(Transition t) {
         log.debug "Adding to cache - $t"
@@ -255,8 +292,20 @@ class PetriNet {
     /**
      * DSL method: should be used after connect() 
      * 
+     * @param shortName the shortName of the PNObject it must start with 't' or 'p'
+     * @return the Arc (fluent API)
+     */
+    public Arc to(String shortName) {
+        if     (shortName.startsWith('p')) return to(place: shortName)
+        else if(shortName.startsWith('t')) return to(transition: shortName)
+        else                               throw new RuntimeException("ShortName '$shortName' must start with 't' or 'p'");
+    }
+
+    /**
+     * DSL method: should be used after connect() 
+     * 
      * @param p
-     * @return
+     * @return the Arc (fluent API)
      */
     public Arc to(Map<String,String> pno) {
         if(pno.transition) {
@@ -274,7 +323,7 @@ class PetriNet {
      * DSL method: should be used after connect() 
      * 
      * @param p
-     * @return
+     * @return the Arc (fluent API)
      */
     public Arc to(Transition t) {
         if(cache != null && cache instanceof Place) {
@@ -292,7 +341,7 @@ class PetriNet {
      * DSL method: should be used after connect() 
      * 
      * @param p
-     * @return
+     * @return the Arc (fluent API)
      */
     public Arc to(Place p) {
         if(cache != null && cache instanceof Transition) {
