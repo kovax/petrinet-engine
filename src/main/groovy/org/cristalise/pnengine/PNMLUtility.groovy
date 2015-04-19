@@ -24,14 +24,16 @@ import groovy.util.logging.Slf4j
 
 
 /**
- * @author kovax
  *
  */
 @Slf4j
 class PNMLUtility {
 
+    /**
+     * Temporary store of PNObjjects using the ID from the PNML file
+     */
     Map<Integer, PNObject> cache = [:]
-    
+
     /**
      * Imports files which were created PNML (http://pnml.lip6.fr/index.html) compliant editors
      * 
@@ -57,7 +59,6 @@ class PNMLUtility {
             cache[id] =  pn.transition(name)
         }
         
-
         pnml.net.arc.each {
             String name = it.name.value
             int sourceID = Integer.parseInt(it.@source.toString())
@@ -70,9 +71,7 @@ class PNMLUtility {
 
             pn.connect(source, target)
         }
-        
-        pn.printJson()
-
+        cache.clear()
         return pn
     }
 
@@ -86,5 +85,4 @@ class PNMLUtility {
     public String pnmlIExport(PetriNet pn) {
         return ""
     }
-
 }
