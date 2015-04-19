@@ -32,15 +32,20 @@ class PetriNetDSLTests {
     @Test
     public void placeToTransition() {
         def pn = PetriNet.builder("p1->t1") {
-            def p1 = place "p1" withTokens 1
+            def p1 = place "p1"
             def t1 = transition "t1"
 
             connect p1 to t1
             assert arcs.p1t1.name == "p1t1"
-            
-            assert places.p1.tokens == 1
-            assert transitions.t1.canFire()
         }
+        
+        try {
+            pn.transitions.t1.fire()
+            fail("t1.fire() shall throw exception")
+        }
+        catch(Exception e) {}
+
+        pn.places.p1.tokens = 1
 
         assert pn.places.p1.tokens == 1
         assert pn.transitions.t1.canFire()
@@ -50,7 +55,6 @@ class PetriNetDSLTests {
         assert pn.places.p1.tokens == 0
         assert ! pn.transitions.t1.canFire()
     }
-    
 
     @Test
     public void SamePlaceNameThrowsException() {

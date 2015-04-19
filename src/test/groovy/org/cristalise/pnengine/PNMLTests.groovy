@@ -48,6 +48,12 @@ class PNMLTests {
     public void importANDSplitPNML() {
         def pn = new PNMLUtility().pnmlImport("src/test/data/ANDSplit.pnml")
         generalPNAsserts(pn, [transitions:4, places:6, arcs:10])
+        
+        assert ! pn.transitions["t1"].canFire()
+
+        pn.places.p1.tokens = 1
+//        pn.printJson()
+        assert pn.transitions.t1.canFire()
     }
 
 
