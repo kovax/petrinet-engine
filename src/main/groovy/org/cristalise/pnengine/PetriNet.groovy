@@ -272,7 +272,7 @@ class PetriNet {
      * @return the PetriNet (fluent API)
      */
     public PetriNet connect(Place p) {
-        log.debug "Adding to cache - $p"
+        log.trace "Adding to cache - $p"
         cache = p
         return this
     }
@@ -284,7 +284,7 @@ class PetriNet {
      * @return the PetriNet (fluent API)
      */
     public PetriNet connect(Transition t) {
-        log.debug "Adding to cache - $t"
+        log.trace "Adding to cache - $t"
         cache = t
         return this
     }
