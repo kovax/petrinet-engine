@@ -31,36 +31,41 @@ import org.la4j.vector.dense.BasicVector
 
 
 /**
- * @author kovax
- *
+ * Class to create, manage and execute Petri Nets based on matrix algebra
+ * 
+ * Implementation is INCOMPLETE, canFire() does not work for individual Transition (check tests).
  */
 @Slf4j
 @CompileStatic
 class PNMatrix {
     
     /**
+     * <pre>
      * Transition input matrix a.k.a. Precondition matrix
      * 
      * It is an m x n (m rows, n columns) matrix, where 
-     * m is the number of Transitions and 
-     * n is the number of Places in the PetriNet. 
+     *  - m is the number of Transitions and
+     *  - n is the number of Places in the PetriNet
      *
      * For each position [i,j]
-     * place 1 if Transition i has input from Place j or 
-     * place 0 if Transition i does not have input from Place j.
+     *  - place 1 if Transition i has input from Place j or 
+     *  - place 0 if Transition i does not have input from Place j.
+     * </pre>
      */
     private Matrix Dplus = null
     
     /**
+     * <pre>
      * Transition output matrix a.k.a. Postcondition matrix
      * 
      * It is an m x n (m rows, n columns) matrix, where 
-     * m is the number of Transitions and
-     * n is the number of Places in the PetriNet. 
+     *  - m is the number of Transitions and
+     *  - n is the number of Places in the PetriNet. 
      * 
      * For each position [i,j] 
-     * place 1 if Transition i has output from Place j or 
-     * place 0 if Transition i does not have output from Place j. 
+     *  - place 1 if Transition i has output from Place j or 
+     *  - place 0 if Transition i does not have output from Place j. 
+     * </pre>
      */
     private Matrix Dminus = null
 
@@ -72,7 +77,7 @@ class PNMatrix {
     private Matrix D = null
 
     /**
-     * 
+     * n size Vector holding the current number of tokens of each Place
      */
     private Vector currentMarking = null
 

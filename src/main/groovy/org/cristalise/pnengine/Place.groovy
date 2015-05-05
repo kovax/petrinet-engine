@@ -26,7 +26,7 @@ import groovy.util.logging.Slf4j
 
 
 /**
- * 
+ * Place holds a number of tokens
  */
 @Slf4j
 @ToString(includeNames = true, includePackage = false, includeSuper = true)
@@ -35,17 +35,25 @@ class Place  extends PNObject {
 
     public static final int UNLIMITED = -1;
 
+    /**
+     * The actual number of tokens the Place holds
+     */
     int tokens = 0;
+    
+    /**
+     * The maximum number of tokens the Place can hold
+     */
     int maxTokens = UNLIMITED;
 
     /**
-     * Returns the shortName of the Place - "p"+index
+     * Returns the shortName of the Place e.g. p1 ("p"+index)
      */
     public String shortName() {
         return "p$index"
     }
     
     /**
+     * Required to calculate if a Transition can fire or not. Check {@link org.cristalise.pnengine.Arc#canFire()}
      * 
      * @param threshold
      * @return
@@ -56,30 +64,25 @@ class Place  extends PNObject {
     }
 
     /**
+     * Required to calculate if a Transition can fire or not. Check 
+     * {@link org.cristalise.pnengine.Arc#canFire()}
      * 
      * @param newTokens
      * @return
      */
     public boolean maxTokensReached(int newTokens) {
         log.trace "maxTokensReached(newTokens: $newTokens) - $this"
-        if (hasUnlimitedTokens()) {
+        if (maxTokens == UNLIMITED) {
             return false;
         }
         return (tokens+newTokens > maxTokens);
     }
 
     /**
+     * Sets the initial number tokens
      * 
-     * @return
-     */
-    private boolean hasUnlimitedTokens() {
-        return maxTokens == UNLIMITED;
-    }
-
-    /**
-     * 
-     * @param initial
-     * @return
+     * @param initial the initial number tokens
+     * @return this Place to use this as a fluent API
      */
     public Place withTokens(int initial) {
         tokens = initial
@@ -87,19 +90,21 @@ class Place  extends PNObject {
     }
 
     /**
+     * Add the number if tokens when the Transition has fired. Check {@link org.cristalise.pnengine.Arc#fire()}
      * 
      * @param weight
      */
     public void addTokens(int weight) {
-        this.tokens += weight;
+        tokens += weight;
     }
 
     /**
+     * Remove the number of tokens when the Transition has fired. Check {@link org.cristalise.pnengine.Arc#fire()}
      * 
      * @param weight
      */
     public void removeTokens(int weight) {
-        if(tokens - weight < 0) throw new RuntimeException("Place ${shortName()} has not got enough tokens (tokens:$tokens minus weight: $weight)")
-        this.tokens -= weight;
+        if(tokens - weight < 0) throw new RuntimeException("Place ${shortName()} has not got enough tokens (tokens:$tokens < weight: $weight)")
+        tokens -= weight;
     }
 }

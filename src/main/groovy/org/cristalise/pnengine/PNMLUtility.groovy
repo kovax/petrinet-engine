@@ -24,7 +24,7 @@ import groovy.util.logging.Slf4j
 
 
 /**
- *
+ * Utility class to import/export PNML xml
  */
 @Slf4j
 class PNMLUtility {

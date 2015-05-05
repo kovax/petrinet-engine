@@ -25,25 +25,37 @@ import groovy.transform.ToString
 import groovy.util.logging.Slf4j
 
 /**
- *
+ * Transition represents an even which may accour in a system.
  */
 @Slf4j
 @ToString(includeNames = true, includePackage = false, includeSuper = true)
 @CompileStatic
 class Transition  extends PNObject {
-    
-    //List of shortNames of incoming arcs
+
+    /**
+     * List of shortNames of incoming arcs
+     */
     List<String> incoming = [];
-    //List of shortNames of outgoing arcs
+
+    /**
+     * List of shortNames of outgoing arcs
+     */
     List<String> outgoing = [];
 
     /**
+     * Returns the shortName of the Transition e.g. t1 ("t"+index)
      * 
+     * @return the shortName of the Transition
      */
     public String shortName() {
         return "t"+index
     }
     
+    /**
+     * Calculates if the Transition can fire or not by triggering all its incoming and outgoing Arcs
+     * 
+     * @return if the Transition can fire or not
+     */
     public boolean canFire() {
         boolean canFire = true;
 
@@ -60,6 +72,9 @@ class Transition  extends PNObject {
         return canFire;
     }
 
+    /**
+     * Fires the Transition by triggering all its incoming and outgoing Arcs
+     */
     public void fire() {
         log.trace "fire() - $this"
         
@@ -69,10 +84,20 @@ class Transition  extends PNObject {
         for (String arcShortName : outgoing) { parent.arcs[arcShortName].fire(); }
     }
     
+    /**
+     * Adds the shortName of the Arc to its incoming list
+     * 
+     * @param arc the incoming Arc
+     */
     public void addIncoming(Arc arc) {
         this.incoming.add(arc.shortName());
     }
 
+    /**
+     * Adds the shortName of the Arc to its outgoing list
+     * 
+     * @param arc the outgoing Arc
+     */
     public void addOutgoing(Arc arc) {
         this.outgoing.add(arc.shortName());
     }

@@ -25,7 +25,8 @@ import groovy.transform.ToString
 import groovy.util.logging.Slf4j
 
 /**
- * Arc represents the connection between Place and Transition
+ * Arc represents the connection between Place and Transition. The Arc has direction (e.g. Place to Transition)
+ * and weight, i.e. how many tokens it consumes/produces from/to a Place.
  */
 @Slf4j
 @CompileStatic
@@ -38,13 +39,21 @@ class Arc extends PNObject {
     int transIndex;
     int weight = 1;
 
-    public enum Direction { Place2Trans, P2T, Trans2Place, T2P }
+    /**
+     * Enumeration for the direction of the Arc
+     */
+    public enum Direction { 
+        Place2Trans, 
+        P2T,          //shorter form for Place2Trans
+        Trans2Place, 
+        T2P           //shorter from of Trans2Place
+    }
 
     /**
-     * Computes the shortName of the Arc. Depending of the direction it is the shortName of the Place
+     * Returns the shortName of the Arc, e.g. t1p1. Depending of the direction it is the shortName of the Place
      * concatenated with the shortName of the Transition
      * 
-     * @return the shortName of tha Arc
+     * @return the shortName of the Arc
      */
     public String shortName() {
         switch (direction) {
@@ -64,7 +73,7 @@ class Arc extends PNObject {
     }
     
     /**
-     * Calculates if the Arc can fire or not.
+     * Calculates if the Arc can fire or not. The logic is dependent of its Direction.
      * 
      * @return whether the Arc can fire or not
      */

@@ -29,30 +29,48 @@ import org.cristalise.pnengine.Arc.Direction
 
 
 /**
- * 
+ * The main class to create, manage and execute Petri Nets.
  */
 @Slf4j
 @CompileStatic
 @TupleConstructor(includeFields=true)
 class PetriNet {
 
+    /**
+     * Name of the PetriNet (optional)
+     */
     String name
 
-    int lastID         = 0    
+    int lastID         = 0
     int lastPlaceIndex = 1
     int lastTransIndex = 1
     int lastArcIndex   = 1
 
-    Map<String, Place>      places      = [:]
+    /**
+     * Map of Places based on their shortName (e.g. p1)
+     */
+    Map<String, Place> places = [:]
+    
+    /**
+     * Map of Transitions based on their shortName (e.g. t1)
+     */
     Map<String, Transition> transitions = [:]
-    Map<String, Arc>        arcs        = [:]
 
+    /**
+     * Map of Arcs based on their shortName (e.g. p1t1)
+     */
+    Map<String, Arc> arcs = [:]
+
+    /**
+     * Temporary holder of PNObjects used by the connect() and to() methods implementing fluent API
+     */
     PNObject cache = null
+
 
     public String printJson() { println new JsonBuilder(this).toPrettyString() }
 
     /**
-     * Adds the PNObject to the correct list of the PetriNet
+     * Adds the PNObject to the correct list (places, transitions, arcs) using their short name
      * RuntimeException is thrown if the same PNObject was already added to the net with the same shortName.
      * 
      * @param pno the given PNObject
@@ -191,7 +209,7 @@ class PetriNet {
         pnList.each {
             if(it instanceof List<Map<String,String>>) {
                 def row = (List<Map<String,String>>)it
-                pn.connect row[0] to row[1]
+                pn.connect(row[0]).to(row[1])
             }
             else if(it instanceof Map<String,String>) {
                 def row = (Map<String,String>)it
@@ -199,13 +217,16 @@ class PetriNet {
                 switch(d) {
                     case Direction.Trans2Place:
                     case Direction.T2P:
-                        pn.connect transition: row.transition to place: row.place
+                        pn.connect(transition: row.transition).to(place: row.place)
                         break
                     case Direction.Place2Trans:
                     case Direction.P2T:
-                        pn.connect place: row.place to transition: row.transition
+                        pn.connect(place: row.place).to(transition: row.transition)
                         break
                 }
+            }
+            else {
+                throw new RuntimeException("${it} is unknow")
             }
         }
 
@@ -227,9 +248,11 @@ class PetriNet {
     public static PetriNet builder(String name, Closure cl) {
         def pn = new PetriNet(name: name)
 
-        cl.delegate = pn
-        cl()
-        
+        if(cl) {
+            cl.delegate = pn
+            cl()
+        }
+
         return pn
     }
 
@@ -244,13 +267,15 @@ class PetriNet {
     public PetriNet connect(String shortName) {
         if     (shortName.startsWith('p')) return connect(place:      shortName)
         else if(shortName.startsWith('t')) return connect(transition: shortName)
-        else                               throw new RuntimeException("ShortName '$shortName' must start with 't' or 'p'");
+        else                               throw new RuntimeException("Incorrect shortName '$shortName'! It must start with 't' or 'p'");
     }
 
     /**
-     * DSL method: it should be used before to()
+     * DSL method: Adds a Place/Transition to the PetriNet based on groovy's map notation.
+     * If the Place/Transition was already exist, it only adds to an internal cache, so the subsequent to()
+     * method call will be able to use it.
      * 
-     * @param p
+     * @param pno
      * @return the PetriNet (fluent API)
      */
     public PetriNet connect(Map<String, String> pno) {
@@ -266,7 +291,8 @@ class PetriNet {
     }
 
     /**
-     * DSL method: it should be used before to() 
+     * DSL method: Based on an existing Place object. It only adds it to an internal cache, so the subsequent to()
+     * method call will be able to use it.
      * 
      * @param p
      * @return the PetriNet (fluent API)
@@ -278,7 +304,8 @@ class PetriNet {
     }
 
     /**
-     * DSL method: should be used before to() 
+     * DSL method: Based on an existing Transition object. It only adds it to an internal cache, so the subsequent to()
+     * method call will be able to use it.
      * 
      * @param t
      * @return the PetriNet (fluent API)

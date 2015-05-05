@@ -32,9 +32,26 @@ abstract class PNObject {
 
     public PetriNet parent = null
 
-    int    ID    = -1
-    int    index = -1
+    /**
+     * The unique ID of all PN Object within the PetriNet
+     */
+    int ID = -1
+
+    /**
+     * Index is a unique ID within the type of the PetriNet object. It follows the natural 
+     * convention used in Algebra and drawings done by humans.
+     */
+    int index = -1
+
+    /**
+     * The optional name of the PN Object. It can be any string but it is set to the shortName if nothing was set
+     */
     String name  = ""
 
+    /**
+     * The shortName of the PN Object implemented by each subclass
+     * 
+     * @return the shortName
+     */
     public abstract String shortName();
 }
