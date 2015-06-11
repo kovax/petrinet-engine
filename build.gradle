@@ -14,13 +14,13 @@ sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
 ext {
-    groovyAllVersion  = '2.3.7'
+    groovyAllVersion  = '2.4.3'
     sl4jVersion       = '1.7.12'
     logbackVersion    = '1.1.3'
     la4jVersion       = '0.5.5' //linear algebra java lib for PetriNet matrix computation
 //    commonMathVersion = '3.4.1' //math lib for PetriNet matrix computation
 
-    spockCoreVersion = '1.0-groovy-2.3'
+    spockCoreVersion = '1.0-groovy-2.4'
     junitVersion = '4.12'
 }
 
