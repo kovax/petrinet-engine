@@ -20,10 +20,8 @@
  */
 package org.cristalise.pnengine;
 
-import static org.junit.Assert.*
 import groovy.transform.CompileStatic
 
-import org.junit.Test
 
 /**
  *

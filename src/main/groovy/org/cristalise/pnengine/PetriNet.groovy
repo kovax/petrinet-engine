@@ -20,12 +20,11 @@
  */
 package org.cristalise.pnengine
 
-import groovy.json.JsonBuilder
+import org.cristalise.pnengine.Arc.Direction
+
 import groovy.transform.CompileStatic
 import groovy.transform.TupleConstructor
 import groovy.util.logging.Slf4j
-
-import org.cristalise.pnengine.Arc.Direction
 
 
 /**

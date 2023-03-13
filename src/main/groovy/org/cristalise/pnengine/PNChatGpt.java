@@ -1,3 +1,5 @@
+package org.cristalise.pnengine;
+
 import java.util.Arrays;
 
 public class PNChatGpt {
